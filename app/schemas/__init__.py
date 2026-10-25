@@ -7,6 +7,19 @@ from app.schemas.auth import (
     UserUpdateStatus,
     UserProfileResponse
 )
+from app.schemas.case import (
+    CaseCreate,
+    CaseUpdate,
+    CaseStatusUpdate,
+    CourtCaseResponse,
+    CourtCaseDetailResponse,
+    CaseLawyerResponse,
+    CaseHistoryResponse,
+    CaseDocumentResponse,
+    DigitalEvidenceResponse,
+    DuplicateCheckResponse,
+    LawyerAssignment
+)
 
 __all__ = [
     "TokenResponse",
@@ -15,5 +28,16 @@ __all__ = [
     "PasswordResetConfirm",
     "UserCreate",
     "UserUpdateStatus",
-    "UserProfileResponse"
+    "UserProfileResponse",
+    "CaseCreate",
+    "CaseUpdate",
+    "CaseStatusUpdate",
+    "CourtCaseResponse",
+    "CourtCaseDetailResponse",
+    "CaseLawyerResponse",
+    "CaseHistoryResponse",
+    "CaseDocumentResponse",
+    "DigitalEvidenceResponse",
+    "DuplicateCheckResponse",
+    "LawyerAssignment"
 ]
