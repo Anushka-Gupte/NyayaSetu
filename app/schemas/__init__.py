@@ -59,6 +59,13 @@ from app.schemas.tracking import (
     CaseTimelineResponse
 )
 
+from app.schemas.notification import (
+    NotificationCreate,
+    NotificationResponse,
+    NotificationPreference,
+    NotificationStats
+)
+
 __all__ = [
     "TokenResponse",
     "LoginRequest",
@@ -103,5 +110,9 @@ __all__ = [
     "LiveHearingInfo",
     "CourtroomDisplayBoard",
     "CaseTimelineMilestone",
-    "CaseTimelineResponse"
+    "CaseTimelineResponse",
+    "NotificationCreate",
+    "NotificationResponse",
+    "NotificationPreference",
+    "NotificationStats"
 ]
