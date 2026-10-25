@@ -1,0 +1,119 @@
+/* Aceternity UI Custom Styling & Utility Tokens */
+
+:root {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #020617; /* Slate-950 base */
+  color: #f8fafc;
+  overflow-x: hidden;
+}
+
+/* Dot Grid Background Pattern */
+.bg-grid-pattern {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-dot-pattern {
+  background-image: radial-gradient(rgba(99, 102, 241, 0.15) 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
+}
+
+/* Perspective 3D Tilt for Hero Section Card */
+.perspective-container {
+  perspective: 1200px;
+}
+
+.hero-scaled-card {
+  transform: rotateX(12deg) scale(0.92);
+  transform-origin: top center;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease;
+  box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.9), 0 0 60px -10px rgba(59, 130, 246, 0.35);
+}
+
+.hero-scaled-card:hover {
+  transform: rotateX(4deg) scale(0.96);
+  box-shadow: 0 40px 70px -15px rgba(0, 0, 0, 0.95), 0 0 80px -10px rgba(99, 102, 241, 0.45);
+}
+
+/* Ambient Radial Glows */
+.radial-glow-blue {
+  background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.28) 0%, rgba(15, 23, 42, 0) 70%);
+}
+
+.radial-glow-purple {
+  background: radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.18) 0%, rgba(2, 6, 23, 0) 70%);
+}
+
+/* Glassmorphism Card Style */
+.glass-card {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card-hover {
+  transition: all 0.3s ease;
+}
+
+.glass-card-hover:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(99, 102, 241, 0.2);
+}
+
+/* Glowing Button Effect */
+.btn-glow {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn-glow::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-glow:hover::after {
+  opacity: 1;
+}
+
+/* Shimmer Pill Badge */
+.shimmer-badge {
+  background: linear-gradient(90deg, rgba(30, 41, 59, 0.9) 0%, rgba(51, 65, 85, 0.9) 50%, rgba(30, 41, 59, 0.9) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 4s infinite linear;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #020617;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
