@@ -21,6 +21,21 @@ from app.schemas.case import (
     LawyerAssignment
 )
 
+from app.schemas.hearing import (
+    CourtroomResponse,
+    HearingSlotRecommendation,
+    HearingRecommendationRequest,
+    HearingRecommendationResponse,
+    HearingScheduleCreate,
+    HearingRescheduleRequest,
+    HearingCancelRequest,
+    HearingAdjournRequest,
+    HearingCompleteRequest,
+    ConflictCheckRequest,
+    ConflictCheckResponse,
+    HearingResponse
+)
+
 __all__ = [
     "TokenResponse",
     "LoginRequest",
@@ -39,5 +54,17 @@ __all__ = [
     "CaseDocumentResponse",
     "DigitalEvidenceResponse",
     "DuplicateCheckResponse",
-    "LawyerAssignment"
+    "LawyerAssignment",
+    "CourtroomResponse",
+    "HearingSlotRecommendation",
+    "HearingRecommendationRequest",
+    "HearingRecommendationResponse",
+    "HearingScheduleCreate",
+    "HearingRescheduleRequest",
+    "HearingCancelRequest",
+    "HearingAdjournRequest",
+    "HearingCompleteRequest",
+    "ConflictCheckRequest",
+    "ConflictCheckResponse",
+    "HearingResponse"
 ]
