@@ -39,15 +39,16 @@
       
       <!-- Top Branding -->
       <div>
-        <a href="/" class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 p-0.5 shadow-lg shadow-blue-500/25">
-            <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-              <i data-lucide="scale" class="w-5 h-5 text-blue-400"></i>
-            </div>
+        <a href="/" class="flex items-center gap-3.5 group">
+          <div class="relative w-11 h-11 rounded-full p-0.5 bg-gradient-to-tr from-amber-500/40 via-amber-400/20 to-blue-500/40 shadow-lg shadow-amber-500/10">
+            <img src="/static/img/nyayasetu-emblem.svg" alt="NyayaSetu Emblem" class="w-full h-full rounded-full">
           </div>
           <div>
-            <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">NyayaSetu</span>
-            <span class="text-[10px] font-mono tracking-widest block text-blue-400 -mt-1 uppercase">Digital Judicial Portal</span>
+            <div class="flex items-center gap-2">
+              <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-amber-200 via-white to-slate-200 bg-clip-text text-transparent">NyayaSetu</span>
+              <span class="text-xs font-serif text-amber-400/80 font-medium tracking-wide">न्यायसेतु</span>
+            </div>
+            <span class="text-[10px] font-mono tracking-wider block text-slate-400 uppercase">National Judicial Platform</span>
           </div>
         </a>
 
@@ -134,20 +135,25 @@
             <span>One-Click Role Demo Sign In</span>
           </div>
           <div class="flex flex-wrap gap-2">
-            <button onclick="quickFill('admin', 'Password@123', 'Administrator')" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white transition border border-white/5">
-              👑 Admin
+            <button onclick="quickFill('admin', 'Password@123', 'Administrator')" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white transition border border-white/5 flex items-center gap-1.5">
+              <i data-lucide="shield" class="w-3.5 h-3.5 text-rose-400"></i>
+              <span>Admin</span>
             </button>
-            <button onclick="quickFill('clerk1', 'Password@123', 'Court Clerk')" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white transition border border-white/5">
-              📋 Clerk
+            <button onclick="quickFill('clerk1', 'Password@123', 'Court Clerk')" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white transition border border-white/5 flex items-center gap-1.5">
+              <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-indigo-400"></i>
+              <span>Clerk</span>
             </button>
-            <button onclick="quickFill('judge_sharma', 'Password@123', 'Judge')" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white transition border border-white/5">
-              ⚖️ Judge Sharma
+            <button onclick="quickFill('judge_sharma', 'Password@123', 'Judge')" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white transition border border-white/5 flex items-center gap-1.5">
+              <i data-lucide="gavel" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Judge Sharma</span>
             </button>
-            <button onclick="quickFill('adv_verma', 'Password@123', 'Lawyer')" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white transition border border-white/5">
-              💼 Adv. Verma
+            <button onclick="quickFill('adv_verma', 'Password@123', 'Lawyer')" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white transition border border-white/5 flex items-center gap-1.5">
+              <i data-lucide="briefcase" class="w-3.5 h-3.5 text-teal-400"></i>
+              <span>Adv. Verma</span>
             </button>
-            <button onclick="quickFill('rajesh_k', 'Password@123', 'Litigant')" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white transition border border-white/5">
-              👤 Litigant
+            <button onclick="quickFill('rajesh_k', 'Password@123', 'Litigant')" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white transition border border-white/5 flex items-center gap-1.5">
+              <i data-lucide="user" class="w-3.5 h-3.5 text-blue-400"></i>
+              <span>Litigant</span>
             </button>
           </div>
         </div>

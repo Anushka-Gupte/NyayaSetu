@@ -37,20 +37,26 @@
   <!-- Navigation Bar -->
   <header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/70 backdrop-blur-xl">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-      <a href="/" class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 p-0.5 shadow-lg shadow-blue-500/25">
-          <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-            <i data-lucide="scale" class="w-5 h-5 text-blue-400"></i>
-          </div>
+      <!-- Indian Judicial Emblem & Branding -->
+      <a href="/" class="flex items-center gap-3.5 group">
+        <div class="relative w-11 h-11 rounded-full p-0.5 bg-gradient-to-tr from-amber-500/40 via-amber-400/20 to-blue-500/40 shadow-lg shadow-amber-500/10 transition group-hover:scale-105">
+          <img src="/static/img/nyayasetu-emblem.svg" alt="NyayaSetu Emblem" class="w-full h-full rounded-full">
         </div>
-        <div>
-          <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">NyayaSetu</span>
-          <span class="text-[10px] font-mono tracking-widest block text-blue-400 -mt-1 uppercase">Digital Judicial Portal</span>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-amber-200 via-white to-slate-200 bg-clip-text text-transparent">NyayaSetu</span>
+            <span class="text-xs font-serif text-amber-400/80 font-medium tracking-wide">न्यायसेतु</span>
+          </div>
+          <span class="text-[10px] font-mono tracking-wider text-slate-400 uppercase">National Judicial Platform</span>
         </div>
       </a>
 
+      <!-- Balanced Judicial Navigation Bar -->
       <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
-        <a href="#features" class="hover:text-white transition">Features</a>
+        <a href="#features" class="hover:text-amber-200 transition">Features</a>
+        <a href="#workflow" class="hover:text-amber-200 transition">Workflow</a>
+        <a href="#roles" class="hover:text-amber-200 transition">Stakeholder Portals</a>
+        <a href="#security" class="hover:text-amber-200 transition">Security Standards</a>
       </nav>
 
       <div class="flex items-center gap-3" id="nav-auth-actions">
@@ -307,6 +313,240 @@
             </p>
           </div>
           <div class="mt-6 pt-4 border-t border-white/5 font-mono text-xs text-rose-400">FR-4.8.3 • Multi-Channel Alerts</div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 2: Judicial Workflow (End-to-End Lifecycle) -->
+  <section id="workflow" class="py-24 border-t border-white/5 relative bg-slate-950/80">
+    <div class="max-w-6xl mx-auto px-6">
+      
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <h2 class="text-xs font-mono uppercase tracking-widest text-amber-400 font-semibold">Operational Excellence</h2>
+        <h3 class="text-3xl sm:text-4xl font-bold text-white mt-3">End-to-End Judicial Lifecycle</h3>
+        <p class="text-slate-400 mt-4 text-sm sm:text-base">
+          From initial digital e-filing to final certified transcription, every case progression step is automated, auditable, and mathematically optimized.
+        </p>
+      </div>
+
+      <!-- 4-Stage Progressive Workflow Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+
+        <!-- Stage 1 -->
+        <div class="p-6 rounded-2xl glass-card flex flex-col justify-between border-t-2 border-t-blue-500/80">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="font-mono text-xs font-bold text-blue-400">STAGE 01</span>
+              <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
+                <i data-lucide="folder-plus" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <h4 class="text-base font-bold text-white mb-2">Digital Case Filing</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Automated Case ID allocation (<code class="text-blue-300 font-mono">CC/YYYY/SEQ</code>), duplicate case matching, and SHA-256 evidence vault upload.
+            </p>
+          </div>
+          <div class="mt-6 pt-3 border-t border-white/5 text-[11px] font-mono text-slate-500">
+            Intake & Verification
+          </div>
+        </div>
+
+        <!-- Stage 2 -->
+        <div class="p-6 rounded-2xl glass-card flex flex-col justify-between border-t-2 border-t-amber-500/80">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="font-mono text-xs font-bold text-amber-400">STAGE 02</span>
+              <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <h4 class="text-base font-bold text-white mb-2">AI Constraint Scheduling</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Multi-resource constraint engine matches judge domain specialization, courtroom capacity, and party availability in sub-second timeframes.
+            </p>
+          </div>
+          <div class="mt-6 pt-3 border-t border-white/5 text-[11px] font-mono text-slate-500">
+            Zero-Conflict Allocation
+          </div>
+        </div>
+
+        <!-- Stage 3 -->
+        <div class="p-6 rounded-2xl glass-card flex flex-col justify-between border-t-2 border-t-indigo-500/80">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="font-mono text-xs font-bold text-indigo-400">STAGE 03</span>
+              <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                <i data-lucide="landmark" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <h4 class="text-base font-bold text-white mb-2">Daily Cause List</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Automated daily cause list publication, courtroom timetable sorting, landscape PDF generation, and bidirectional iCalendar calendar sync.
+            </p>
+          </div>
+          <div class="mt-6 pt-3 border-t border-white/5 text-[11px] font-mono text-slate-500">
+            Public Notice & Sync
+          </div>
+        </div>
+
+        <!-- Stage 4 -->
+        <div class="p-6 rounded-2xl glass-card flex flex-col justify-between border-t-2 border-t-emerald-500/80">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="font-mono text-xs font-bold text-emerald-400">STAGE 04</span>
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                <i data-lucide="video" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <h4 class="text-base font-bold text-white mb-2">Virtual Trial & Transcripts</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Role-authenticated WebRTC sessions, live attendance logs, speaker-diarized AI transcription, and real-time public display boards.
+            </p>
+          </div>
+          <div class="mt-6 pt-3 border-t border-white/5 text-[11px] font-mono text-slate-500">
+            Certified Record
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 3: Stakeholder Portals (Role Architecture) -->
+  <section id="roles" class="py-24 border-t border-white/5 relative">
+    <div class="max-w-6xl mx-auto px-6">
+
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <h2 class="text-xs font-mono uppercase tracking-widest text-indigo-400 font-semibold">Role-Based Access Control</h2>
+        <h3 class="text-3xl sm:text-4xl font-bold text-white mt-3">Tailored Stakeholder Portals</h3>
+        <p class="text-slate-400 mt-4 text-sm sm:text-base">
+          Five specialized workspaces engineered around the operational requirements of each judicial participant.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+
+        <!-- Role 1: Judge -->
+        <div class="p-6 rounded-2xl glass-card glass-card-hover flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4">
+              <i data-lucide="gavel" class="w-5 h-5"></i>
+            </div>
+            <h4 class="text-base font-bold text-white">Presiding Judge</h4>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Bench calendar control, proceeding commencement, electronic order signing, and AI transcription review.
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-white/5 text-[10px] font-mono text-amber-400">ROLE: JUDGE</div>
+        </div>
+
+        <!-- Role 2: Court Clerk -->
+        <div class="p-6 rounded-2xl glass-card glass-card-hover flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-4">
+              <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+            </div>
+            <h4 class="text-base font-bold text-white">Court Clerk</h4>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Case registration intake, AI recommendation studio, courtroom allocation, and cause list publication.
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-white/5 text-[10px] font-mono text-indigo-400">ROLE: COURT_CLERK</div>
+        </div>
+
+        <!-- Role 3: Lawyer -->
+        <div class="p-6 rounded-2xl glass-card glass-card-hover flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 mb-4">
+              <i data-lucide="briefcase" class="w-5 h-5"></i>
+            </div>
+            <h4 class="text-base font-bold text-white">Advocate</h4>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Assigned case briefs, digital evidence submissions, virtual courtroom check-in, and timetable sync.
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-white/5 text-[10px] font-mono text-teal-400">ROLE: LAWYER</div>
+        </div>
+
+        <!-- Role 4: Litigant -->
+        <div class="p-6 rounded-2xl glass-card glass-card-hover flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4">
+              <i data-lucide="user" class="w-5 h-5"></i>
+            </div>
+            <h4 class="text-base font-bold text-white">Litigant</h4>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Real-time case progression status, digital summons, hearing reminders, and certified records access.
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-white/5 text-[10px] font-mono text-blue-400">ROLE: LITIGANT</div>
+        </div>
+
+        <!-- Role 5: Admin -->
+        <div class="p-6 rounded-2xl glass-card glass-card-hover flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-4">
+              <i data-lucide="shield" class="w-5 h-5"></i>
+            </div>
+            <h4 class="text-base font-bold text-white">Administrator</h4>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              System access provisioning, courtroom facility directory, cryptographic vault governance, and security audit logs.
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-white/5 text-[10px] font-mono text-rose-400">ROLE: ADMINISTRATOR</div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 4: Security & Compliance Standards -->
+  <section id="security" class="py-24 border-t border-white/5 relative bg-slate-950/60">
+    <div class="max-w-6xl mx-auto px-6">
+
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <h2 class="text-xs font-mono uppercase tracking-widest text-emerald-400 font-semibold">Judicial Rigor & Integrity</h2>
+        <h3 class="text-3xl sm:text-4xl font-bold text-white mt-3">Security & Compliance Architecture</h3>
+        <p class="text-slate-400 mt-4 text-sm sm:text-base">
+          Engineered to satisfy stringent legal evidentiary requirements and high-concurrency non-functional specifications.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <div class="p-8 rounded-2xl glass-card">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6">
+            <i data-lucide="binary" class="w-6 h-6"></i>
+          </div>
+          <h4 class="text-lg font-bold text-white">SHA-256 Tamper-Evidence</h4>
+          <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+            Every legal document and electronic exhibit is fingerprinted with cryptographic SHA-256 hashing upon upload. Any subsequent amendment creates a fresh version with full provenance.
+          </p>
+        </div>
+
+        <div class="p-8 rounded-2xl glass-card">
+          <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-6">
+            <i data-lucide="key" class="w-6 h-6"></i>
+          </div>
+          <h4 class="text-lg font-bold text-white">Cryptographic Virtual Rooms</h4>
+          <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+            Virtual hearings enforce role-gated access with cryptographically randomized passcodes and room tokens. Unauthorized parties are prevented from entering proceedings.
+          </p>
+        </div>
+
+        <div class="p-8 rounded-2xl glass-card">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-6">
+            <i data-lucide="history" class="w-6 h-6"></i>
+          </div>
+          <h4 class="text-lg font-bold text-white">Immutable Security Audit Trail</h4>
+          <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+            Every authentication event, case status modification, schedule override, and document access is immutably logged with actor identity, timestamp, and client network parameters.
+          </p>
         </div>
 
       </div>
