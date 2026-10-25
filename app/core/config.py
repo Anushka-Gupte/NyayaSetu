@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "NyayaSetu - Court Case Scheduling & Hearing Management System"
     ENVIRONMENT: str = "development"
     API_V1_STR: str = "/api/v1"
-    SECRET_KEY: str = "nyayasetu_secure_jwt_secret_key_development_spit_2026_demo"
+    SECRET_KEY: str = "nyayasetu_secure_jwt_secret_key_development_judicial_2026_demo"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
     
