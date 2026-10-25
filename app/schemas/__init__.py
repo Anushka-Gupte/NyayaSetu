@@ -51,6 +51,14 @@ from app.schemas.virtual_court import (
     JoinHearingResponse
 )
 
+from app.schemas.tracking import (
+    HearingPostponeRequest,
+    LiveHearingInfo,
+    CourtroomDisplayBoard,
+    CaseTimelineMilestone,
+    CaseTimelineResponse
+)
+
 __all__ = [
     "TokenResponse",
     "LoginRequest",
@@ -90,5 +98,10 @@ __all__ = [
     "AttendanceRecordResponse",
     "TranscriptResponse",
     "OnlineHearingResponse",
-    "JoinHearingResponse"
+    "JoinHearingResponse",
+    "HearingPostponeRequest",
+    "LiveHearingInfo",
+    "CourtroomDisplayBoard",
+    "CaseTimelineMilestone",
+    "CaseTimelineResponse"
 ]
