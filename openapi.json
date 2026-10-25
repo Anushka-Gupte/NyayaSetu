@@ -1,0 +1,6072 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "NyayaSetu - Court Case Scheduling & Hearing Management System",
+    "description": "Backend REST API and Judicial Services for Court Case Scheduling and Hearing Management System",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "User Login (JSON)",
+        "description": "Authenticate user with username or email and password.\nRecords successful and unsuccessful login attempts in the audit log (FR-4.1.3).",
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/token": {
+      "post": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "OAuth2 Form Login (Swagger UI)",
+        "description": "Standard OAuth2 password flow endpoint enabling direct authorization in Swagger docs (/docs).",
+        "operationId": "login_form_api_v1_auth_token_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_login_form_api_v1_auth_token_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Get Current User Profile",
+        "description": "View currently authenticated user's profile and role-specific judicial details.",
+        "operationId": "get_me_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "User Logout",
+        "description": "Terminate active session and log logout in audit trail (FR-4.1.3).",
+        "operationId": "logout_api_v1_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/password-reset-request": {
+      "post": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Request Password Reset",
+        "description": "Initiate password reset via registered email (FR-4.1.3).",
+        "operationId": "request_password_reset_api_v1_auth_password_reset_request_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password-reset-confirm": {
+      "post": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Confirm Password Reset",
+        "description": "Complete password reset with new secure password.",
+        "operationId": "confirm_password_reset_api_v1_auth_password_reset_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetConfirm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users": {
+      "post": {
+        "tags": [
+          "User Management"
+        ],
+        "summary": "Create User Account (Admin Only)",
+        "description": "Administrator onboards a new judicial user and assigns role (FR-4.1.3 Authentication.Role.Assign).",
+        "operationId": "create_user_api_v1_users_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "User Management"
+        ],
+        "summary": "List Users with Optional Role Filter",
+        "description": "List registered judicial users. Accessible to Admins and Court Clerks.",
+        "operationId": "list_users_api_v1_users_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/UserRole"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserProfileResponse"
+                  },
+                  "title": "Response List Users Api V1 Users Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{user_id}/status": {
+      "put": {
+        "tags": [
+          "User Management"
+        ],
+        "summary": "Activate / Deactivate User Account",
+        "description": "Administrator activates or deactivates user accounts (FR-4.1.3 Authentication.Account.Status).",
+        "operationId": "update_user_status_api_v1_users__user_id__status_put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateStatus"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/judges/available": {
+      "get": {
+        "tags": [
+          "User Management"
+        ],
+        "summary": "List Available Judges for Scheduling",
+        "description": "Helper endpoint returning list of active judges and their availability for scheduling.",
+        "operationId": "list_available_judges_api_v1_users_judges_available_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cases/check-duplicate": {
+      "post": {
+        "tags": [
+          "Case & Evidence Management"
+        ],
+        "summary": "Pre-check Potential Duplicate Cases",
+        "description": "Checks for potential duplicate registrations before filing (FR-4.2.3 Case.Duplicate.Check).",
+        "operationId": "check_duplicate_api_v1_cases_check_duplicate_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "title",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 3,
+              "title": "Title"
+            }
+          },
+          {
+            "name": "case_type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Type"
+            }
+          },
+          {
+            "name": "litigant_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Litigant Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DuplicateCheckResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases": {
+      "post": {
+        "tags": [
+          "Case & Evidence Management"
+        ],
+        "summary": "Register New Court Case",
+        "description": "Registers a new judicial case, generates unique Case ID, and records initial history (FR-4.2.3).",
+        "operationId": "register_case_api_v1_cases_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourtCaseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Case & Evidence Management"
+        ],
+        "summary": "Search and Filter Cases",
+        "description": "Multi-criteria case search and filter with role-based scoping (FR-4.2.3 Case.Search).",
+        "operationId": "search_cases_api_v1_cases_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search term for case number, title, or party",
+              "title": "Q"
+            },
+            "description": "Search term for case number, title, or party"
+          },
+          {
+            "name": "case_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Case Type"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Priority"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourtCaseResponse"
+                  },
+                  "title": "Response Search Cases Api V1 Cases Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}": {
+      "get": {
+        "tags": [
+          "Case & Evidence Management"
+        ],
+        "summary": "Get Case Details with Documents and History",
+        "description": "Returns complete case dossier, including attached documents, evidence, and historical timeline.",
+        "operationId": "get_case_details_api_v1_cases__case_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourtCaseDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Case & Evidence Management"
+        ],
+        "summary": "Update Case Information",
+        "description": "Updates general case information (FR-4.2.3 Case.Update).",
+        "operationId": "update_case_api_v1_cases__case_id__put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourtCaseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}/status": {
+      "put": {
+        "tags": [
+          "Case & Evidence Management"
+        ],
+        "summary": "Update Case Lifecycle Status",
+        "description": "Updates the judicial case lifecycle state (Registered -> Active -> Pending -> Disposed).",
+        "operationId": "update_case_status_api_v1_cases__case_id__status_put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseStatusUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourtCaseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}/lawyers": {
+      "post": {
+        "tags": [
+          "Case & Evidence Management"
+        ],
+        "summary": "Assign Lawyer to Case",
+        "description": "Assigns an authorized lawyer to represent a party in the case.",
+        "operationId": "assign_lawyer_api_v1_cases__case_id__lawyers_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LawyerAssignment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourtCaseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}/documents": {
+      "post": {
+        "tags": [
+          "Case & Evidence Management"
+        ],
+        "summary": "Upload Case Document",
+        "description": "Uploads a legal document with SHA-256 integrity validation and automatic version control (FR-4.5.3).",
+        "operationId": "upload_document_api_v1_cases__case_id__documents_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_document_api_v1_cases__case_id__documents_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDocumentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}/documents/{document_id}/download": {
+      "get": {
+        "tags": [
+          "Case & Evidence Management"
+        ],
+        "summary": "Securely Download Case Document",
+        "description": "Secure download with role-based access validation (FR-4.5.3 Documents.Download).",
+        "operationId": "download_document_api_v1_cases__case_id__documents__document_id__download_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}/evidence": {
+      "post": {
+        "tags": [
+          "Case & Evidence Management"
+        ],
+        "summary": "Upload Digital Evidence",
+        "description": "Uploads digital evidence with SHA-256 cryptographic verification (FR-4.5.3 Documents.Evidence.Attach).",
+        "operationId": "upload_evidence_api_v1_cases__case_id__evidence_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_evidence_api_v1_cases__case_id__evidence_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DigitalEvidenceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}/evidence/{evidence_id}/verify": {
+      "put": {
+        "tags": [
+          "Case & Evidence Management"
+        ],
+        "summary": "Verify Digital Evidence",
+        "description": "Verifies digital evidence authenticity (DigitalEvidence.verify()).",
+        "operationId": "verify_evidence_api_v1_cases__case_id__evidence__evidence_id__verify_put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "evidence_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Evidence Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DigitalEvidenceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}/history": {
+      "get": {
+        "tags": [
+          "Case & Evidence Management"
+        ],
+        "summary": "Get Case History Timeline",
+        "description": "Returns full chronological judicial history and audit trail of the case (FR-4.7.3 Tracking.Timeline).",
+        "operationId": "get_case_history_api_v1_cases__case_id__history_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CaseHistoryResponse"
+                  },
+                  "title": "Response Get Case History Api V1 Cases  Case Id  History Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hearings/recommend": {
+      "post": {
+        "tags": [
+          "AI Scheduling & Hearing Management"
+        ],
+        "summary": "Generate AI Hearing Recommendations",
+        "description": "AI-Powered hearing scheduling recommendation engine (FR-4.3.3 Scheduling.AI.Recommend).\nOptimizes for judge specialization, courtroom availability, case priority, and workload balance.",
+        "operationId": "get_ai_recommendations_api_v1_hearings_recommend_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HearingRecommendationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HearingRecommendationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hearings/check-conflict": {
+      "post": {
+        "tags": [
+          "AI Scheduling & Hearing Management"
+        ],
+        "summary": "Detect Scheduling Conflicts",
+        "description": "Detects scheduling conflicts for judge, courtroom, advocate, and court calendar (FR-4.3.3 Scheduling.Conflict.Detect).",
+        "operationId": "check_conflicts_api_v1_hearings_check_conflict_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConflictCheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictCheckResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hearings": {
+      "post": {
+        "tags": [
+          "AI Scheduling & Hearing Management"
+        ],
+        "summary": "Schedule Hearing",
+        "description": "Schedules a new court hearing (FR-4.3.3 Scheduling.Create).\nVerifies conflict avoidance and records judicial resource allocations.",
+        "operationId": "schedule_hearing_api_v1_hearings_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HearingScheduleCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HearingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "AI Scheduling & Hearing Management"
+        ],
+        "summary": "List Hearings with Filtering",
+        "description": "List hearings with flexible date, judge, courtroom, and status filtering.",
+        "operationId": "list_hearings_api_v1_hearings_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "judge_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Judge Id"
+            }
+          },
+          {
+            "name": "courtroom_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Courtroom Id"
+            }
+          },
+          {
+            "name": "hearing_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Hearing Date"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HearingResponse"
+                  },
+                  "title": "Response List Hearings Api V1 Hearings Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hearings/{hearing_id}": {
+      "get": {
+        "tags": [
+          "AI Scheduling & Hearing Management"
+        ],
+        "summary": "Get Hearing Details",
+        "description": "Returns single hearing proceeding record.",
+        "operationId": "get_hearing_api_v1_hearings__hearing_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "hearing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Hearing Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HearingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hearings/{hearing_id}/reschedule": {
+      "put": {
+        "tags": [
+          "AI Scheduling & Hearing Management"
+        ],
+        "summary": "Reschedule Hearing",
+        "description": "Reschedules an existing hearing to a new date, time, judge, or courtroom (FR-4.3.3 Scheduling.Reschedule).",
+        "operationId": "reschedule_hearing_api_v1_hearings__hearing_id__reschedule_put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "hearing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Hearing Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HearingRescheduleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HearingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hearings/{hearing_id}/cancel": {
+      "put": {
+        "tags": [
+          "AI Scheduling & Hearing Management"
+        ],
+        "summary": "Cancel Hearing",
+        "description": "Cancels a scheduled hearing and releases judicial resources (FR-4.3.3 Scheduling.Cancel).",
+        "operationId": "cancel_hearing_api_v1_hearings__hearing_id__cancel_put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "hearing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Hearing Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HearingCancelRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HearingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hearings/{hearing_id}/adjourn": {
+      "put": {
+        "tags": [
+          "AI Scheduling & Hearing Management"
+        ],
+        "summary": "Adjourn Hearing",
+        "description": "Adjourns hearing and records reason and next target date (FR-4.7.3 Tracking.Hearing.Adjourn).",
+        "operationId": "adjourn_hearing_api_v1_hearings__hearing_id__adjourn_put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "hearing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Hearing Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HearingAdjournRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HearingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hearings/{hearing_id}/complete": {
+      "put": {
+        "tags": [
+          "AI Scheduling & Hearing Management"
+        ],
+        "summary": "Complete Hearing",
+        "description": "Marks ongoing hearing as Completed with judicial outcome recorded (FR-4.7.3 Tracking.Hearing.Complete).",
+        "operationId": "complete_hearing_api_v1_hearings__hearing_id__complete_put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "hearing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Hearing Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HearingCompleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HearingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hearings/courtrooms/available": {
+      "get": {
+        "tags": [
+          "AI Scheduling & Hearing Management"
+        ],
+        "summary": "List Courtrooms",
+        "description": "Returns courtrooms and capacity for judicial resource allocation.",
+        "operationId": "list_courtrooms_api_v1_hearings_courtrooms_available_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CourtroomResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Courtrooms Api V1 Hearings Courtrooms Available Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cause-lists/generate": {
+      "post": {
+        "tags": [
+          "Cause Lists & Calendar Management"
+        ],
+        "summary": "Generate Daily Cause List",
+        "description": "Automatically compiles and generates the daily cause list (FR-4.4.3 CauseList.Generate).\nSorts by courtroom and hearing timings.",
+        "operationId": "generate_cause_list_api_v1_cause_lists_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CauseListGenerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CauseListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cause-lists": {
+      "get": {
+        "tags": [
+          "Cause Lists & Calendar Management"
+        ],
+        "summary": "List Cause Lists",
+        "description": "List all generated or published daily cause lists (FR-4.4.3 CauseList.View).",
+        "operationId": "list_cause_lists_api_v1_cause_lists_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 30,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CauseListResponse"
+                  },
+                  "title": "Response List Cause Lists Api V1 Cause Lists Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cause-lists/{cause_list_id}": {
+      "get": {
+        "tags": [
+          "Cause Lists & Calendar Management"
+        ],
+        "summary": "Get Cause List Details",
+        "description": "Retrieves full cause list entry breakdown for a specific date.",
+        "operationId": "get_cause_list_details_api_v1_cause_lists__cause_list_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cause_list_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Cause List Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CauseListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cause-lists/{cause_list_id}/publish": {
+      "put": {
+        "tags": [
+          "Cause Lists & Calendar Management"
+        ],
+        "summary": "Publish Cause List",
+        "description": "Publishes the finalized cause list, making it visible to the public and litigants (FR-4.4.3 CauseList.Publish).",
+        "operationId": "publish_cause_list_api_v1_cause_lists__cause_list_id__publish_put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cause_list_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Cause List Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CauseListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cause-lists/{cause_list_id}/pdf": {
+      "get": {
+        "tags": [
+          "Cause Lists & Calendar Management"
+        ],
+        "summary": "Download Cause List PDF",
+        "description": "Downloads printable Daily Cause List in PDF format (FR-4.4.3 CauseList.Download).",
+        "operationId": "download_cause_list_pdf_api_v1_cause_lists__cause_list_id__pdf_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cause_list_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Cause List Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cause-lists/calendar/events": {
+      "get": {
+        "tags": [
+          "Cause Lists & Calendar Management"
+        ],
+        "summary": "Get Court Calendar Events",
+        "description": "Returns calendar events for interactive judicial calendar views with filtering (FR-4.4.3 Calendar.View, Calendar.Filter).",
+        "operationId": "get_calendar_events_api_v1_cause_lists_calendar_events_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "name": "judge_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Judge Id"
+            }
+          },
+          {
+            "name": "courtroom_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Courtroom Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CalendarEventResponse"
+                  },
+                  "title": "Response Get Calendar Events Api V1 Cause Lists Calendar Events Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cause-lists/calendar/export.ics": {
+      "get": {
+        "tags": [
+          "Cause Lists & Calendar Management"
+        ],
+        "summary": "Export iCalendar (.ics) Feed for Google / Outlook Sync",
+        "description": "Exports calendar sync feed in RFC 5545 iCalendar standard format for Google Calendar, Outlook, and Apple Calendar (FR-4.4.3 Calendar.Sync).",
+        "operationId": "export_ical_feed_api_v1_cause_lists_calendar_export_ics_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "judge_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Judge Id"
+            }
+          },
+          {
+            "name": "courtroom_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Courtroom Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/virtual-court/sessions": {
+      "post": {
+        "tags": [
+          "Virtual Courtroom & AI Transcription"
+        ],
+        "summary": "Create Virtual Courtroom Session",
+        "description": "Creates a secure virtual hearing link and session room (FR-4.6.3 VirtualHearing.Link.Generate).",
+        "operationId": "create_virtual_session_api_v1_virtual_court_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnlineHearingCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnlineHearingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/virtual-court/sessions/{online_hearing_id}/join": {
+      "post": {
+        "tags": [
+          "Virtual Courtroom & AI Transcription"
+        ],
+        "summary": "Join Virtual Court Hearing",
+        "description": "Role-gated join access. Verifies authorization and tracks attendance (FR-4.6.3 VirtualHearing.Join & VirtualHearing.Attendance.Track).",
+        "operationId": "join_virtual_hearing_api_v1_virtual_court_sessions__online_hearing_id__join_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "online_hearing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Online Hearing Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JoinHearingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/virtual-court/sessions/{online_hearing_id}/leave": {
+      "post": {
+        "tags": [
+          "Virtual Courtroom & AI Transcription"
+        ],
+        "summary": "Leave Virtual Court Hearing",
+        "description": "Records departure timestamp in attendance tracking log.",
+        "operationId": "leave_virtual_hearing_api_v1_virtual_court_sessions__online_hearing_id__leave_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "online_hearing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Online Hearing Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/virtual-court/sessions/{online_hearing_id}/start": {
+      "post": {
+        "tags": [
+          "Virtual Courtroom & AI Transcription"
+        ],
+        "summary": "Start Online Hearing",
+        "description": "Judge commences proceeding. Sets start time and updates hearing status to 'In Progress'.",
+        "operationId": "start_online_hearing_api_v1_virtual_court_sessions__online_hearing_id__start_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "online_hearing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Online Hearing Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnlineHearingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/virtual-court/sessions/{online_hearing_id}/recording": {
+      "post": {
+        "tags": [
+          "Virtual Courtroom & AI Transcription"
+        ],
+        "summary": "Toggle Hearing Recording",
+        "description": "Authorized recording controls for judge (FR-4.6.3 VirtualHearing.Record).",
+        "operationId": "toggle_recording_api_v1_virtual_court_sessions__online_hearing_id__recording_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "online_hearing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Online Hearing Id"
+            }
+          },
+          {
+            "name": "enable",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean",
+              "title": "Enable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnlineHearingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/virtual-court/sessions/{online_hearing_id}/end": {
+      "post": {
+        "tags": [
+          "Virtual Courtroom & AI Transcription"
+        ],
+        "summary": "Conclude Hearing & Generate AI Transcript",
+        "description": "Concludes virtual hearing session, updates status, and triggers automated AI transcript generation (FR-4.6.3 VirtualHearing.End).",
+        "operationId": "end_online_hearing_api_v1_virtual_court_sessions__online_hearing_id__end_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "online_hearing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Online Hearing Id"
+            }
+          },
+          {
+            "name": "notes",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Bench notes or summary",
+              "title": "Notes"
+            },
+            "description": "Bench notes or summary"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnlineHearingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/virtual-court/sessions/{online_hearing_id}/attendees": {
+      "get": {
+        "tags": [
+          "Virtual Courtroom & AI Transcription"
+        ],
+        "summary": "Get Attendance Roster",
+        "description": "Retrieves complete attendance roster for the proceeding (FR-4.6.3 VirtualHearing.Attendance.Track).",
+        "operationId": "get_attendees_api_v1_virtual_court_sessions__online_hearing_id__attendees_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "online_hearing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Online Hearing Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttendanceRecordResponse"
+                  },
+                  "title": "Response Get Attendees Api V1 Virtual Court Sessions  Online Hearing Id  Attendees Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/virtual-court/sessions/{online_hearing_id}/transcript": {
+      "get": {
+        "tags": [
+          "Virtual Courtroom & AI Transcription"
+        ],
+        "summary": "Get Hearing Transcript",
+        "description": "Retrieves the verbatim AI transcript (FR-4.6.3 VirtualHearing.Transcript.Generate).",
+        "operationId": "get_transcript_api_v1_virtual_court_sessions__online_hearing_id__transcript_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "online_hearing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Online Hearing Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranscriptResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/virtual-court/sessions/{online_hearing_id}/transcript/pdf": {
+      "get": {
+        "tags": [
+          "Virtual Courtroom & AI Transcription"
+        ],
+        "summary": "Download Transcript PDF",
+        "description": "Exports and downloads authenticated transcript PDF (Transcript.download()).",
+        "operationId": "download_transcript_pdf_api_v1_virtual_court_sessions__online_hearing_id__transcript_pdf_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "online_hearing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Online Hearing Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tracking/courtrooms/display-board": {
+      "get": {
+        "tags": [
+          "Hearing Tracking & WebSocket Gateway"
+        ],
+        "summary": "Courtroom Live Digital Display Boards",
+        "description": "Public judicial display board showing currently proceeding matters across all courtrooms (SRS Section 4.7).",
+        "operationId": "get_live_display_boards_api_v1_tracking_courtrooms_display_board_get",
+        "parameters": [
+          {
+            "name": "target_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Target Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourtroomDisplayBoard"
+                  },
+                  "title": "Response Get Live Display Boards Api V1 Tracking Courtrooms Display Board Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tracking/courtrooms/{courtroom_id}/display": {
+      "get": {
+        "tags": [
+          "Hearing Tracking & WebSocket Gateway"
+        ],
+        "summary": "Single Courtroom Display",
+        "description": "Returns live display board for a specific courtroom entrance screen.",
+        "operationId": "get_courtroom_display_api_v1_tracking_courtrooms__courtroom_id__display_get",
+        "parameters": [
+          {
+            "name": "courtroom_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Courtroom Id"
+            }
+          },
+          {
+            "name": "target_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Target Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourtroomDisplayBoard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tracking/hearings/{hearing_id}/start": {
+      "put": {
+        "tags": [
+          "Hearing Tracking & WebSocket Gateway"
+        ],
+        "summary": "Commence Hearing Proceeding (In Progress)",
+        "description": "Marks hearing as 'In Progress' and broadcasts live update across WebSockets (FR-4.7.3 Tracking.Hearing.Start).",
+        "operationId": "commence_hearing_api_v1_tracking_hearings__hearing_id__start_put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "hearing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Hearing Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tracking/hearings/{hearing_id}/postpone": {
+      "put": {
+        "tags": [
+          "Hearing Tracking & WebSocket Gateway"
+        ],
+        "summary": "Postpone Hearing",
+        "description": "Postpones a scheduled hearing and records reason (FR-4.7.3 Tracking.Hearing.Postpone).",
+        "operationId": "postpone_hearing_api_v1_tracking_hearings__hearing_id__postpone_put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "hearing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Hearing Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HearingPostponeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tracking/cases/{case_id}/timeline": {
+      "get": {
+        "tags": [
+          "Hearing Tracking & WebSocket Gateway"
+        ],
+        "summary": "Get Full Visual Case Timeline",
+        "description": "Returns full chronological visual timeline of milestones from registration to disposal (FR-4.7.3 Tracking.Timeline).",
+        "operationId": "get_case_timeline_api_v1_tracking_cases__case_id__timeline_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseTimelineResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "tags": [
+          "Smart Notifications & Reminders"
+        ],
+        "summary": "Get Current User Notifications",
+        "description": "Returns notification history for the authenticated user (FR-4.8.3 Notification.History).",
+        "operationId": "get_user_notifications_api_v1_notifications_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "unread_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Unread Only"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationResponse"
+                  },
+                  "title": "Response Get User Notifications Api V1 Notifications Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/{notification_id}/read": {
+      "put": {
+        "tags": [
+          "Smart Notifications & Reminders"
+        ],
+        "summary": "Mark Notification as Read",
+        "description": "Marks a single notification as read.",
+        "operationId": "mark_notification_read_api_v1_notifications__notification_id__read_put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "notification_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Notification Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/read-all": {
+      "put": {
+        "tags": [
+          "Smart Notifications & Reminders"
+        ],
+        "summary": "Mark All Notifications as Read",
+        "description": "Clears unread badge count by marking all user's notifications as read.",
+        "operationId": "mark_all_read_api_v1_notifications_read_all_put",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/send": {
+      "post": {
+        "tags": [
+          "Smart Notifications & Reminders"
+        ],
+        "summary": "Send Manual Court Notification",
+        "description": "Court staff manually dispatches an official alert to a specific judicial participant.",
+        "operationId": "send_manual_notification_api_v1_notifications_send_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/trigger-reminders": {
+      "post": {
+        "tags": [
+          "Smart Notifications & Reminders"
+        ],
+        "summary": "Trigger Automated 24h Hearing Reminders",
+        "description": "Invokes automated background reminder scan for scheduled hearings (FR-4.8.3 Notification.Hearing.Reminder).",
+        "operationId": "trigger_reminders_api_v1_notifications_trigger_reminders_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "target_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Target Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/retry-failed": {
+      "post": {
+        "tags": [
+          "Smart Notifications & Reminders"
+        ],
+        "summary": "Retry Failed Notification Deliveries",
+        "description": "Retries undelivered or failed email/SMS alerts according to retry policy (FR-4.8.3 Notification.Retry).",
+        "operationId": "retry_failed_api_v1_notifications_retry_failed_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/stats": {
+      "get": {
+        "tags": [
+          "Smart Notifications & Reminders"
+        ],
+        "summary": "Notification System Delivery Statistics",
+        "description": "Returns operational notification metrics for judicial administrators.",
+        "operationId": "get_notification_stats_api_v1_notifications_stats_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationStats"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/dashboard/overview": {
+      "get": {
+        "tags": [
+          "Role Dashboards"
+        ],
+        "summary": "Role-Based Dashboard Overview",
+        "description": "Returns role-tailored dashboard metrics and summaries corresponding to SRS Section 3.1.",
+        "operationId": "get_dashboard_overview_api_v1_dashboard_overview_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Dashboard Overview Api V1 Dashboard Overview Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/audit-logs": {
+      "get": {
+        "tags": [
+          "Audit Trail"
+        ],
+        "summary": "View Audit Logs (Admin Only)",
+        "description": "View immutable judicial audit trails. Strictly restricted to Administrators (SRS NFR-5.3.7 & NFR-5.3.8).",
+        "operationId": "list_audit_logs_api_v1_audit_logs_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Action"
+            }
+          },
+          {
+            "name": "entity_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Entity Type"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditLogResponse"
+                  },
+                  "title": "Response List Audit Logs Api V1 Audit Logs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health Check",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AttendanceRecordResponse": {
+        "properties": {
+          "attendance_id": {
+            "type": "integer",
+            "title": "Attendance Id"
+          },
+          "online_hearing_id": {
+            "type": "integer",
+            "title": "Online Hearing Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "user_name": {
+            "type": "string",
+            "title": "User Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "joined_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Joined At"
+          },
+          "left_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Left At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "attendance_id",
+          "online_hearing_id",
+          "user_id",
+          "user_name",
+          "role",
+          "joined_at"
+        ],
+        "title": "AttendanceRecordResponse"
+      },
+      "AuditLogResponse": {
+        "properties": {
+          "log_id": {
+            "type": "integer",
+            "title": "Log Id"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "entity_type": {
+            "type": "string",
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Id"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          },
+          "ip_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ip Address"
+          },
+          "date_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Date Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "log_id",
+          "user_id",
+          "action",
+          "entity_type",
+          "entity_id",
+          "details",
+          "ip_address",
+          "date_time"
+        ],
+        "title": "AuditLogResponse"
+      },
+      "Body_login_form_api_v1_auth_token_post": {
+        "properties": {
+          "grant_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^password$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grant Type"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "title": "Password"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope",
+            "default": ""
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "client_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "format": "password",
+            "title": "Client Secret"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "Body_login_form_api_v1_auth_token_post"
+      },
+      "Body_upload_document_api_v1_cases__case_id__documents_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "document_type": {
+            "type": "string",
+            "title": "Document Type",
+            "default": "Petition"
+          },
+          "is_confidential": {
+            "type": "boolean",
+            "title": "Is Confidential",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_document_api_v1_cases__case_id__documents_post"
+      },
+      "Body_upload_evidence_api_v1_cases__case_id__evidence_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "evidence_type": {
+            "type": "string",
+            "title": "Evidence Type",
+            "default": "Document"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_evidence_api_v1_cases__case_id__evidence_post"
+      },
+      "CalendarEventResponse": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "hearing_id": {
+            "type": "integer",
+            "title": "Hearing Id"
+          },
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "case_number": {
+            "type": "string",
+            "title": "Case Number"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "hearing_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Hearing Date"
+          },
+          "start_time": {
+            "type": "string",
+            "title": "Start Time"
+          },
+          "end_time": {
+            "type": "string",
+            "title": "End Time"
+          },
+          "courtroom_name": {
+            "type": "string",
+            "title": "Courtroom Name"
+          },
+          "judge_name": {
+            "type": "string",
+            "title": "Judge Name"
+          },
+          "hearing_type": {
+            "type": "string",
+            "title": "Hearing Type"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "hearing_id",
+          "case_id",
+          "case_number",
+          "title",
+          "hearing_date",
+          "start_time",
+          "end_time",
+          "courtroom_name",
+          "judge_name",
+          "hearing_type",
+          "status"
+        ],
+        "title": "CalendarEventResponse"
+      },
+      "CaseCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 3,
+            "title": "Title"
+          },
+          "case_type": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "Case Type"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority",
+            "default": "Medium"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "litigant_id": {
+            "type": "integer",
+            "title": "Litigant Id"
+          },
+          "lawyer_assignments": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/LawyerAssignment"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lawyer Assignments",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "case_type",
+          "litigant_id"
+        ],
+        "title": "CaseCreate"
+      },
+      "CaseDocumentResponse": {
+        "properties": {
+          "document_id": {
+            "type": "integer",
+            "title": "Document Id"
+          },
+          "document_name": {
+            "type": "string",
+            "title": "Document Name"
+          },
+          "document_type": {
+            "type": "string",
+            "title": "Document Type"
+          },
+          "file_size_bytes": {
+            "type": "integer",
+            "title": "File Size Bytes"
+          },
+          "file_hash": {
+            "type": "string",
+            "title": "File Hash"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "is_confidential": {
+            "type": "boolean",
+            "title": "Is Confidential"
+          },
+          "upload_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Upload Date"
+          },
+          "uploaded_by_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uploaded By Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "document_id",
+          "document_name",
+          "document_type",
+          "file_size_bytes",
+          "file_hash",
+          "version",
+          "is_confidential",
+          "upload_date",
+          "uploaded_by_id"
+        ],
+        "title": "CaseDocumentResponse"
+      },
+      "CaseHistoryResponse": {
+        "properties": {
+          "history_id": {
+            "type": "integer",
+            "title": "History Id"
+          },
+          "event": {
+            "type": "string",
+            "title": "Event"
+          },
+          "date_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Date Time"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "history_id",
+          "event",
+          "date_time",
+          "description",
+          "user_id"
+        ],
+        "title": "CaseHistoryResponse"
+      },
+      "CaseLawyerResponse": {
+        "properties": {
+          "lawyer_id": {
+            "type": "integer",
+            "title": "Lawyer Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "bar_registration_no": {
+            "type": "string",
+            "title": "Bar Registration No"
+          },
+          "representing_party": {
+            "type": "string",
+            "title": "Representing Party"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lawyer_id",
+          "name",
+          "email",
+          "bar_registration_no",
+          "representing_party"
+        ],
+        "title": "CaseLawyerResponse"
+      },
+      "CaseStatusUpdate": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "reason_or_outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Or Outcome"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "CaseStatusUpdate"
+      },
+      "CaseTimelineMilestone": {
+        "properties": {
+          "history_id": {
+            "type": "integer",
+            "title": "History Id"
+          },
+          "event": {
+            "type": "string",
+            "title": "Event"
+          },
+          "date_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Date Time"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "actor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "history_id",
+          "event",
+          "date_time",
+          "description"
+        ],
+        "title": "CaseTimelineMilestone"
+      },
+      "CaseTimelineResponse": {
+        "properties": {
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "case_number": {
+            "type": "string",
+            "title": "Case Number"
+          },
+          "case_title": {
+            "type": "string",
+            "title": "Case Title"
+          },
+          "case_status": {
+            "type": "string",
+            "title": "Case Status"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority"
+          },
+          "filing_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Filing Date"
+          },
+          "total_events": {
+            "type": "integer",
+            "title": "Total Events"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/CaseTimelineMilestone"
+            },
+            "type": "array",
+            "title": "Timeline",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "case_number",
+          "case_title",
+          "case_status",
+          "priority",
+          "filing_date",
+          "total_events"
+        ],
+        "title": "CaseTimelineResponse"
+      },
+      "CaseUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "case_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Type"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "title": "CaseUpdate"
+      },
+      "CauseListEntry": {
+        "properties": {
+          "hearing_id": {
+            "type": "integer",
+            "title": "Hearing Id"
+          },
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "case_number": {
+            "type": "string",
+            "title": "Case Number"
+          },
+          "case_title": {
+            "type": "string",
+            "title": "Case Title"
+          },
+          "case_type": {
+            "type": "string",
+            "title": "Case Type"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority"
+          },
+          "hearing_time": {
+            "type": "string",
+            "title": "Hearing Time"
+          },
+          "judge_name": {
+            "type": "string",
+            "title": "Judge Name"
+          },
+          "courtroom_name": {
+            "type": "string",
+            "title": "Courtroom Name"
+          },
+          "courtroom_location": {
+            "type": "string",
+            "title": "Courtroom Location"
+          },
+          "hearing_type": {
+            "type": "string",
+            "title": "Hearing Type"
+          },
+          "hearing_status": {
+            "type": "string",
+            "title": "Hearing Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hearing_id",
+          "case_id",
+          "case_number",
+          "case_title",
+          "case_type",
+          "priority",
+          "hearing_time",
+          "judge_name",
+          "courtroom_name",
+          "courtroom_location",
+          "hearing_type",
+          "hearing_status"
+        ],
+        "title": "CauseListEntry"
+      },
+      "CauseListGenerateRequest": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "court_name": {
+            "type": "string",
+            "title": "Court Name",
+            "default": "Principal District & Sessions Court, Mumbai"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date"
+        ],
+        "title": "CauseListGenerateRequest"
+      },
+      "CauseListResponse": {
+        "properties": {
+          "cause_list_id": {
+            "type": "integer",
+            "title": "Cause List Id"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "court_name": {
+            "type": "string",
+            "title": "Court Name"
+          },
+          "is_published": {
+            "type": "boolean",
+            "title": "Is Published"
+          },
+          "generated_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated Date"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "pdf_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdf Url"
+          },
+          "total_cases": {
+            "type": "integer",
+            "title": "Total Cases"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/CauseListEntry"
+            },
+            "type": "array",
+            "title": "Entries",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "cause_list_id",
+          "date",
+          "court_name",
+          "is_published",
+          "generated_date",
+          "total_cases"
+        ],
+        "title": "CauseListResponse"
+      },
+      "ConflictCheckRequest": {
+        "properties": {
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "judge_id": {
+            "type": "integer",
+            "title": "Judge Id"
+          },
+          "courtroom_id": {
+            "type": "integer",
+            "title": "Courtroom Id"
+          },
+          "hearing_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Hearing Date"
+          },
+          "hearing_time": {
+            "type": "string",
+            "title": "Hearing Time"
+          },
+          "exclude_hearing_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exclude Hearing Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "judge_id",
+          "courtroom_id",
+          "hearing_date",
+          "hearing_time"
+        ],
+        "title": "ConflictCheckRequest"
+      },
+      "ConflictCheckResponse": {
+        "properties": {
+          "has_conflict": {
+            "type": "boolean",
+            "title": "Has Conflict"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Conflicts"
+          },
+          "suggested_alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/HearingSlotRecommendation"
+            },
+            "type": "array",
+            "title": "Suggested Alternatives",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "has_conflict",
+          "conflicts"
+        ],
+        "title": "ConflictCheckResponse"
+      },
+      "CourtCaseDetailResponse": {
+        "properties": {
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "case_number": {
+            "type": "string",
+            "title": "Case Number"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "case_type": {
+            "type": "string",
+            "title": "Case Type"
+          },
+          "filing_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Filing Date"
+          },
+          "case_status": {
+            "type": "string",
+            "title": "Case Status"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "clerk_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clerk Id"
+          },
+          "litigant_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Litigant Id"
+          },
+          "litigant_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Litigant Name"
+          },
+          "lawyers": {
+            "items": {
+              "$ref": "#/components/schemas/CaseLawyerResponse"
+            },
+            "type": "array",
+            "title": "Lawyers",
+            "default": []
+          },
+          "documents_count": {
+            "type": "integer",
+            "title": "Documents Count",
+            "default": 0
+          },
+          "evidence_count": {
+            "type": "integer",
+            "title": "Evidence Count",
+            "default": 0
+          },
+          "hearings_count": {
+            "type": "integer",
+            "title": "Hearings Count",
+            "default": 0
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/CaseDocumentResponse"
+            },
+            "type": "array",
+            "title": "Documents",
+            "default": []
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/DigitalEvidenceResponse"
+            },
+            "type": "array",
+            "title": "Evidence",
+            "default": []
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/CaseHistoryResponse"
+            },
+            "type": "array",
+            "title": "History",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "case_number",
+          "title",
+          "case_type",
+          "filing_date",
+          "case_status",
+          "priority",
+          "description",
+          "clerk_id",
+          "litigant_id"
+        ],
+        "title": "CourtCaseDetailResponse"
+      },
+      "CourtCaseResponse": {
+        "properties": {
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "case_number": {
+            "type": "string",
+            "title": "Case Number"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "case_type": {
+            "type": "string",
+            "title": "Case Type"
+          },
+          "filing_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Filing Date"
+          },
+          "case_status": {
+            "type": "string",
+            "title": "Case Status"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "clerk_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clerk Id"
+          },
+          "litigant_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Litigant Id"
+          },
+          "litigant_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Litigant Name"
+          },
+          "lawyers": {
+            "items": {
+              "$ref": "#/components/schemas/CaseLawyerResponse"
+            },
+            "type": "array",
+            "title": "Lawyers",
+            "default": []
+          },
+          "documents_count": {
+            "type": "integer",
+            "title": "Documents Count",
+            "default": 0
+          },
+          "evidence_count": {
+            "type": "integer",
+            "title": "Evidence Count",
+            "default": 0
+          },
+          "hearings_count": {
+            "type": "integer",
+            "title": "Hearings Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "case_number",
+          "title",
+          "case_type",
+          "filing_date",
+          "case_status",
+          "priority",
+          "description",
+          "clerk_id",
+          "litigant_id"
+        ],
+        "title": "CourtCaseResponse"
+      },
+      "CourtroomDisplayBoard": {
+        "properties": {
+          "courtroom_id": {
+            "type": "integer",
+            "title": "Courtroom Id"
+          },
+          "courtroom_name": {
+            "type": "string",
+            "title": "Courtroom Name"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "bench_status": {
+            "type": "string",
+            "title": "Bench Status"
+          },
+          "current_matter": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveHearingInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "next_matter": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveHearingInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "today_total_matters": {
+            "type": "integer",
+            "title": "Today Total Matters",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "courtroom_id",
+          "courtroom_name",
+          "location",
+          "bench_status"
+        ],
+        "title": "CourtroomDisplayBoard"
+      },
+      "CourtroomResponse": {
+        "properties": {
+          "courtroom_name": {
+            "type": "string",
+            "title": "Courtroom Name"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "capacity": {
+            "type": "integer",
+            "title": "Capacity",
+            "default": 50
+          },
+          "availability": {
+            "type": "boolean",
+            "title": "Availability",
+            "default": true
+          },
+          "courtroom_id": {
+            "type": "integer",
+            "title": "Courtroom Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "courtroom_name",
+          "location",
+          "courtroom_id"
+        ],
+        "title": "CourtroomResponse"
+      },
+      "DigitalEvidenceResponse": {
+        "properties": {
+          "evidence_id": {
+            "type": "integer",
+            "title": "Evidence Id"
+          },
+          "evidence_type": {
+            "type": "string",
+            "title": "Evidence Type"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "file_hash": {
+            "type": "string",
+            "title": "File Hash"
+          },
+          "submission_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Submission Date"
+          },
+          "submitted_by_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted By Id"
+          },
+          "is_verified": {
+            "type": "boolean",
+            "title": "Is Verified"
+          }
+        },
+        "type": "object",
+        "required": [
+          "evidence_id",
+          "evidence_type",
+          "description",
+          "file_hash",
+          "submission_date",
+          "submitted_by_id",
+          "is_verified"
+        ],
+        "title": "DigitalEvidenceResponse"
+      },
+      "DuplicateCheckResponse": {
+        "properties": {
+          "is_potential_duplicate": {
+            "type": "boolean",
+            "title": "Is Potential Duplicate"
+          },
+          "matches": {
+            "items": {
+              "$ref": "#/components/schemas/DuplicateMatch"
+            },
+            "type": "array",
+            "title": "Matches"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_potential_duplicate",
+          "matches"
+        ],
+        "title": "DuplicateCheckResponse"
+      },
+      "DuplicateMatch": {
+        "properties": {
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "case_number": {
+            "type": "string",
+            "title": "Case Number"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "similarity_score": {
+            "type": "number",
+            "title": "Similarity Score"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "case_number",
+          "title",
+          "similarity_score",
+          "reason"
+        ],
+        "title": "DuplicateMatch"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HearingAdjournRequest": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 5,
+            "title": "Reason"
+          },
+          "next_hearing_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Hearing Date"
+          },
+          "next_hearing_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Hearing Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "HearingAdjournRequest"
+      },
+      "HearingCancelRequest": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 5,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "HearingCancelRequest"
+      },
+      "HearingCompleteRequest": {
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "minLength": 5,
+            "title": "Outcome"
+          }
+        },
+        "type": "object",
+        "required": [
+          "outcome"
+        ],
+        "title": "HearingCompleteRequest"
+      },
+      "HearingPostponeRequest": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 5,
+            "title": "Reason"
+          },
+          "new_hearing_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Hearing Date"
+          },
+          "new_hearing_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Hearing Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "HearingPostponeRequest"
+      },
+      "HearingRecommendationRequest": {
+        "properties": {
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "hearing_type": {
+            "type": "string",
+            "title": "Hearing Type",
+            "default": "Physical"
+          },
+          "days_ahead_start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Ahead Start"
+          },
+          "days_ahead_end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Ahead End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id"
+        ],
+        "title": "HearingRecommendationRequest"
+      },
+      "HearingRecommendationResponse": {
+        "properties": {
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "case_number": {
+            "type": "string",
+            "title": "Case Number"
+          },
+          "case_title": {
+            "type": "string",
+            "title": "Case Title"
+          },
+          "case_type": {
+            "type": "string",
+            "title": "Case Type"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority"
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/HearingSlotRecommendation"
+            },
+            "type": "array",
+            "title": "Recommendations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "case_number",
+          "case_title",
+          "case_type",
+          "priority",
+          "recommendations"
+        ],
+        "title": "HearingRecommendationResponse"
+      },
+      "HearingRescheduleRequest": {
+        "properties": {
+          "new_date": {
+            "type": "string",
+            "format": "date",
+            "title": "New Date"
+          },
+          "new_time": {
+            "type": "string",
+            "title": "New Time"
+          },
+          "new_courtroom_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Courtroom Id"
+          },
+          "new_judge_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Judge Id"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 5,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "new_date",
+          "new_time",
+          "reason"
+        ],
+        "title": "HearingRescheduleRequest"
+      },
+      "HearingResponse": {
+        "properties": {
+          "hearing_id": {
+            "type": "integer",
+            "title": "Hearing Id"
+          },
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "case_number": {
+            "type": "string",
+            "title": "Case Number"
+          },
+          "case_title": {
+            "type": "string",
+            "title": "Case Title"
+          },
+          "judge_id": {
+            "type": "integer",
+            "title": "Judge Id"
+          },
+          "judge_name": {
+            "type": "string",
+            "title": "Judge Name"
+          },
+          "courtroom_id": {
+            "type": "integer",
+            "title": "Courtroom Id"
+          },
+          "courtroom_name": {
+            "type": "string",
+            "title": "Courtroom Name"
+          },
+          "courtroom_location": {
+            "type": "string",
+            "title": "Courtroom Location"
+          },
+          "hearing_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Hearing Date"
+          },
+          "hearing_time": {
+            "type": "string",
+            "title": "Hearing Time"
+          },
+          "hearing_status": {
+            "type": "string",
+            "title": "Hearing Status"
+          },
+          "hearing_type": {
+            "type": "string",
+            "title": "Hearing Type"
+          },
+          "adjournment_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjournment Reason"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hearing_id",
+          "case_id",
+          "case_number",
+          "case_title",
+          "judge_id",
+          "judge_name",
+          "courtroom_id",
+          "courtroom_name",
+          "courtroom_location",
+          "hearing_date",
+          "hearing_time",
+          "hearing_status",
+          "hearing_type",
+          "created_at"
+        ],
+        "title": "HearingResponse"
+      },
+      "HearingScheduleCreate": {
+        "properties": {
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "judge_id": {
+            "type": "integer",
+            "title": "Judge Id"
+          },
+          "courtroom_id": {
+            "type": "integer",
+            "title": "Courtroom Id"
+          },
+          "hearing_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Hearing Date"
+          },
+          "hearing_time": {
+            "type": "string",
+            "title": "Hearing Time"
+          },
+          "hearing_type": {
+            "type": "string",
+            "title": "Hearing Type",
+            "default": "Physical"
+          },
+          "is_ai_recommended": {
+            "type": "boolean",
+            "title": "Is Ai Recommended",
+            "default": false
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "judge_id",
+          "courtroom_id",
+          "hearing_date",
+          "hearing_time"
+        ],
+        "title": "HearingScheduleCreate"
+      },
+      "HearingSlotRecommendation": {
+        "properties": {
+          "hearing_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Hearing Date"
+          },
+          "hearing_time": {
+            "type": "string",
+            "title": "Hearing Time"
+          },
+          "judge_id": {
+            "type": "integer",
+            "title": "Judge Id"
+          },
+          "judge_name": {
+            "type": "string",
+            "title": "Judge Name"
+          },
+          "judge_specialization": {
+            "type": "string",
+            "title": "Judge Specialization"
+          },
+          "courtroom_id": {
+            "type": "integer",
+            "title": "Courtroom Id"
+          },
+          "courtroom_name": {
+            "type": "string",
+            "title": "Courtroom Name"
+          },
+          "courtroom_location": {
+            "type": "string",
+            "title": "Courtroom Location"
+          },
+          "confidence_score": {
+            "type": "number",
+            "title": "Confidence Score"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hearing_date",
+          "hearing_time",
+          "judge_id",
+          "judge_name",
+          "judge_specialization",
+          "courtroom_id",
+          "courtroom_name",
+          "courtroom_location",
+          "confidence_score",
+          "reasons"
+        ],
+        "title": "HearingSlotRecommendation"
+      },
+      "JoinHearingResponse": {
+        "properties": {
+          "online_hearing_id": {
+            "type": "integer",
+            "title": "Online Hearing Id"
+          },
+          "meeting_url": {
+            "type": "string",
+            "title": "Meeting Url"
+          },
+          "room_name": {
+            "type": "string",
+            "title": "Room Name"
+          },
+          "participant_name": {
+            "type": "string",
+            "title": "Participant Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "jwt_room_token": {
+            "type": "string",
+            "title": "Jwt Room Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "online_hearing_id",
+          "meeting_url",
+          "room_name",
+          "participant_name",
+          "role",
+          "jwt_room_token"
+        ],
+        "title": "JoinHearingResponse"
+      },
+      "LawyerAssignment": {
+        "properties": {
+          "lawyer_id": {
+            "type": "integer",
+            "title": "Lawyer Id"
+          },
+          "representing_party": {
+            "type": "string",
+            "title": "Representing Party",
+            "default": "Petitioner"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lawyer_id"
+        ],
+        "title": "LawyerAssignment"
+      },
+      "LiveHearingInfo": {
+        "properties": {
+          "hearing_id": {
+            "type": "integer",
+            "title": "Hearing Id"
+          },
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "case_number": {
+            "type": "string",
+            "title": "Case Number"
+          },
+          "case_title": {
+            "type": "string",
+            "title": "Case Title"
+          },
+          "judge_name": {
+            "type": "string",
+            "title": "Judge Name"
+          },
+          "hearing_time": {
+            "type": "string",
+            "title": "Hearing Time"
+          },
+          "hearing_status": {
+            "type": "string",
+            "title": "Hearing Status"
+          },
+          "hearing_type": {
+            "type": "string",
+            "title": "Hearing Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hearing_id",
+          "case_id",
+          "case_number",
+          "case_title",
+          "judge_name",
+          "hearing_time",
+          "hearing_status",
+          "hearing_type"
+        ],
+        "title": "LiveHearingInfo"
+      },
+      "LoginRequest": {
+        "properties": {
+          "username_or_email": {
+            "type": "string",
+            "title": "Username Or Email"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username_or_email",
+          "password"
+        ],
+        "title": "LoginRequest"
+      },
+      "NotificationCreate": {
+        "properties": {
+          "recipient_id": {
+            "type": "integer",
+            "title": "Recipient Id"
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id"
+          },
+          "notification_type": {
+            "type": "string",
+            "title": "Notification Type",
+            "default": "In-App"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 3,
+            "title": "Title"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 5,
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recipient_id",
+          "title",
+          "message"
+        ],
+        "title": "NotificationCreate"
+      },
+      "NotificationResponse": {
+        "properties": {
+          "notification_id": {
+            "type": "integer",
+            "title": "Notification Id"
+          },
+          "recipient_id": {
+            "type": "integer",
+            "title": "Recipient Id"
+          },
+          "recipient_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipient Name"
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id"
+          },
+          "notification_type": {
+            "type": "string",
+            "title": "Notification Type"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "date_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Date Time"
+          },
+          "delivery_status": {
+            "type": "string",
+            "title": "Delivery Status"
+          },
+          "is_read": {
+            "type": "boolean",
+            "title": "Is Read"
+          }
+        },
+        "type": "object",
+        "required": [
+          "notification_id",
+          "recipient_id",
+          "notification_type",
+          "title",
+          "message",
+          "date_time",
+          "delivery_status",
+          "is_read"
+        ],
+        "title": "NotificationResponse"
+      },
+      "NotificationStats": {
+        "properties": {
+          "total_notifications": {
+            "type": "integer",
+            "title": "Total Notifications"
+          },
+          "sent_count": {
+            "type": "integer",
+            "title": "Sent Count"
+          },
+          "delivered_count": {
+            "type": "integer",
+            "title": "Delivered Count"
+          },
+          "failed_count": {
+            "type": "integer",
+            "title": "Failed Count"
+          },
+          "pending_count": {
+            "type": "integer",
+            "title": "Pending Count"
+          },
+          "unread_count": {
+            "type": "integer",
+            "title": "Unread Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_notifications",
+          "sent_count",
+          "delivered_count",
+          "failed_count",
+          "pending_count",
+          "unread_count"
+        ],
+        "title": "NotificationStats"
+      },
+      "OnlineHearingCreate": {
+        "properties": {
+          "hearing_id": {
+            "type": "integer",
+            "title": "Hearing Id"
+          },
+          "meeting_passcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meeting Passcode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hearing_id"
+        ],
+        "title": "OnlineHearingCreate"
+      },
+      "OnlineHearingResponse": {
+        "properties": {
+          "online_hearing_id": {
+            "type": "integer",
+            "title": "Online Hearing Id"
+          },
+          "hearing_id": {
+            "type": "integer",
+            "title": "Hearing Id"
+          },
+          "case_number": {
+            "type": "string",
+            "title": "Case Number"
+          },
+          "case_title": {
+            "type": "string",
+            "title": "Case Title"
+          },
+          "meeting_link": {
+            "type": "string",
+            "title": "Meeting Link"
+          },
+          "meeting_passcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meeting Passcode"
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
+          },
+          "end_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Time"
+          },
+          "is_recorded": {
+            "type": "boolean",
+            "title": "Is Recorded"
+          },
+          "recording_file_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recording File Path"
+          },
+          "attendees_count": {
+            "type": "integer",
+            "title": "Attendees Count",
+            "default": 0
+          },
+          "has_transcript": {
+            "type": "boolean",
+            "title": "Has Transcript",
+            "default": false
+          },
+          "transcript_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcript Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "online_hearing_id",
+          "hearing_id",
+          "case_number",
+          "case_title",
+          "meeting_link",
+          "is_recorded"
+        ],
+        "title": "OnlineHearingResponse"
+      },
+      "PasswordResetConfirm": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "new_password": {
+            "type": "string",
+            "title": "New Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "new_password"
+        ],
+        "title": "PasswordResetConfirm"
+      },
+      "PasswordResetRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "PasswordResetRequest"
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "user_id",
+          "name",
+          "email",
+          "username",
+          "role"
+        ],
+        "title": "TokenResponse"
+      },
+      "TranscriptResponse": {
+        "properties": {
+          "transcript_id": {
+            "type": "integer",
+            "title": "Transcript Id"
+          },
+          "online_hearing_id": {
+            "type": "integer",
+            "title": "Online Hearing Id"
+          },
+          "generated_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated Date"
+          },
+          "transcript_text": {
+            "type": "string",
+            "title": "Transcript Text"
+          },
+          "word_count": {
+            "type": "integer",
+            "title": "Word Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transcript_id",
+          "online_hearing_id",
+          "generated_date",
+          "transcript_text",
+          "word_count"
+        ],
+        "title": "TranscriptResponse"
+      },
+      "UserCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "mobile_no": {
+            "type": "string",
+            "title": "Mobile No"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          },
+          "admin_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admin Role",
+            "default": "SUPER_ADMIN"
+          },
+          "employee_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Id"
+          },
+          "specialization": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specialization",
+            "default": "General"
+          },
+          "bar_registration_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bar Registration No"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "email",
+          "mobile_no",
+          "username",
+          "role",
+          "password"
+        ],
+        "title": "UserCreate"
+      },
+      "UserProfileResponse": {
+        "properties": {
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "mobile_no": {
+            "type": "string",
+            "title": "Mobile No"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "admin_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admin Role"
+          },
+          "employee_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Id"
+          },
+          "specialization": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specialization"
+          },
+          "availability": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Availability"
+          },
+          "bar_registration_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bar Registration No"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "name",
+          "email",
+          "mobile_no",
+          "username",
+          "role",
+          "is_active",
+          "created_at"
+        ],
+        "title": "UserProfileResponse"
+      },
+      "UserRole": {
+        "type": "string",
+        "enum": [
+          "ADMINISTRATOR",
+          "COURT_CLERK",
+          "JUDGE",
+          "LAWYER",
+          "LITIGANT"
+        ],
+        "title": "UserRole"
+      },
+      "UserUpdateStatus": {
+        "properties": {
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_active"
+        ],
+        "title": "UserUpdateStatus"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "OAuth2PasswordBearer": {
+        "type": "oauth2",
+        "flows": {
+          "password": {
+            "scopes": {},
+            "tokenUrl": "/api/v1/auth/login"
+          }
+        }
+      }
+    }
+  }
+}
