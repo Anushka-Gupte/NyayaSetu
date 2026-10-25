@@ -61,6 +61,24 @@ class OnlineHearing(Base):
     hearing = relationship("Hearing", back_populates="online_hearing")
     transcript = relationship("Transcript", back_populates="online_hearing", uselist=False, cascade="all, delete-orphan")
     calendar_events = relationship("Calendar", back_populates="online_hearing", cascade="all, delete-orphan")
+    attendees = relationship("HearingAttendance", back_populates="online_hearing", cascade="all, delete-orphan")
+
+
+class HearingAttendance(Base):
+    """Attendance log entity for Virtual Hearing (FR-4.6.3 VirtualHearing.Attendance.Track)"""
+    __tablename__ = "hearing_attendees"
+
+    attendance_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, index=True)
+    online_hearing_id: Mapped[int] = mapped_column(Integer, ForeignKey("online_hearings.online_hearing_id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.user_id"), nullable=False)
+    user_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    role: Mapped[str] = mapped_column(String(50), nullable=False)
+    joined_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    left_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    ip_address: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+
+    online_hearing = relationship("OnlineHearing", back_populates="attendees")
+    user = relationship("User")
 
 
 class Transcript(Base):

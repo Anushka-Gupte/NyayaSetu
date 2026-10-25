@@ -1,7 +1,7 @@
 from app.core.database import Base
 from app.models.user import User, Administrator, CourtClerk, Judge, Lawyer, Litigant, UserRole
 from app.models.case import CourtCase, CaseDocument, DigitalEvidence, CaseHistory, CaseLawyerAssociation
-from app.models.hearing import Courtroom, Hearing, OnlineHearing, Transcript, Calendar
+from app.models.hearing import Courtroom, Hearing, OnlineHearing, Transcript, Calendar, HearingAttendance
 from app.models.cause_list import CauseList
 from app.models.notification import Notification
 from app.models.audit import AuditLog
@@ -26,6 +26,7 @@ __all__ = [
     "OnlineHearing",
     "Transcript",
     "Calendar",
+    "HearingAttendance",
     "CauseList",
     "Notification",
     "AuditLog",

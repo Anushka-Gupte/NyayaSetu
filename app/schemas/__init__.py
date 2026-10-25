@@ -43,6 +43,14 @@ from app.schemas.cause_list import (
     CalendarEventResponse
 )
 
+from app.schemas.virtual_court import (
+    OnlineHearingCreate,
+    AttendanceRecordResponse,
+    TranscriptResponse,
+    OnlineHearingResponse,
+    JoinHearingResponse
+)
+
 __all__ = [
     "TokenResponse",
     "LoginRequest",
@@ -77,5 +85,10 @@ __all__ = [
     "CauseListEntry",
     "CauseListGenerateRequest",
     "CauseListResponse",
-    "CalendarEventResponse"
+    "CalendarEventResponse",
+    "OnlineHearingCreate",
+    "AttendanceRecordResponse",
+    "TranscriptResponse",
+    "OnlineHearingResponse",
+    "JoinHearingResponse"
 ]
