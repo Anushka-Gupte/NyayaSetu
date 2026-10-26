@@ -24,13 +24,14 @@ All protected endpoints require the HTTP Header:
 ### Endpoints
 | Method | Endpoint | Description | Role Access |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/auth/login` | Login with username/email & password; returns JWT token + role. | Public |
+| `POST` | `/auth/login` | Login with username/email & password; optional `expected_role` enforces the role selected in the sign-in UI. | Public |
+| `POST` | `/auth/register` | Register a citizen/litigant account; returns a JWT token and signs the new user in. Court roles cannot self-register. | Public |
 | `POST` | `/auth/token` | OAuth2 password flow for Swagger UI interactive login. | Public |
 | `GET` | `/auth/me` | Current user profile with role-specific judicial details. | Authenticated |
 | `POST` | `/auth/logout` | Terminates active session and records audit event. | Authenticated |
 | `POST` | `/auth/password-reset-request` | Requests password reset instructions. | Public |
 | `POST` | `/auth/password-reset-confirm` | Confirms password reset with new password. | Public |
-| `POST` | `/users` | Administrator onboards new clerks, judges, lawyers, litigants. | Administrator |
+| `POST` | `/users` | Administrator creates court clerk, judge, advocate, or litigant accounts. | Administrator |
 | `GET` | `/users` | Lists users with optional `?role=` filter. | Admin, Clerk |
 | `PUT` | `/users/{user_id}/status` | Activates or deactivates user accounts. | Administrator |
 | `GET` | `/users/judges/available` | Lists active judges and their availability. | Authenticated |

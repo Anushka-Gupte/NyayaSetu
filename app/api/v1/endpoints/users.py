@@ -2,6 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 
 from app.core.database import get_db
 from app.core.security import get_password_hash
@@ -34,6 +35,11 @@ def create_user(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User with this username or email already exists."
         )
+
+    if user_in.employee_id and db.query(CourtClerk).filter(CourtClerk.employee_id == user_in.employee_id).first():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This employee ID is already registered.")
+    if user_in.bar_registration_no and db.query(Lawyer).filter(Lawyer.bar_registration_no == user_in.bar_registration_no).first():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This bar registration number is already registered.")
 
     hashed_pw = get_password_hash(user_in.password)
 
@@ -97,8 +103,15 @@ def create_user(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported user role")
 
     db.add(user)
-    db.commit()
-    db.refresh(user)
+    try:
+        db.commit()
+        db.refresh(user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A user with one of these details is already registered. Check the username, email, employee ID, or bar registration number."
+        )
 
     AuditService.log(
         db=db,
@@ -119,7 +132,7 @@ def list_users(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(require_roles(UserRole.ADMINISTRATOR, UserRole.COURT_CLERK))
 ):
     """
     List registered judicial users. Accessible to Admins and Court Clerks.
@@ -131,7 +144,7 @@ def list_users(
     limit_val = limit if isinstance(limit, int) else 50
     offset_val = offset if isinstance(offset, int) else 0
 
-    users = query.offset(offset_val).limit(limit_val).all()
+    users = query.order_by(User.created_at.desc()).offset(offset_val).limit(limit_val).all()
     return [build_user_profile(u) for u in users]
 
 

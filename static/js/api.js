@@ -53,7 +53,11 @@ async function api(endpoint, options = {}) {
   if (contentType && contentType.includes('application/json')) {
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.detail || 'API request failed');
+      const detail = data.detail;
+      const message = Array.isArray(detail)
+        ? detail.map(item => typeof item === 'string' ? item : item?.msg || 'Invalid input').join(' ')
+        : typeof detail === 'string' ? detail : 'API request failed';
+      throw new Error(message);
     }
     return data;
   }

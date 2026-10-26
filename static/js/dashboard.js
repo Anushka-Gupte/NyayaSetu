@@ -6,7 +6,43 @@ let currentUser = null;
 let currentHearingSession = null;
 let searchTimeout = null;
 
+function formatCourtDateTime(value, includeDate = true) {
+  const timestamp = typeof value === 'string' && !/(Z|[+-]\d{2}:\d{2})$/i.test(value) ? value + 'Z' : value;
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return value || '';
+  const options = includeDate
+    ? { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' }
+    : { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' };
+  return new Intl.DateTimeFormat('en-IN', options).format(date) + ' IST';
+}
+
+function getCourtLocalDateInputValue() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Kolkata'
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+
+function formatCourtDateOnly(value) {
+  if (!value) return 'Date to be confirmed';
+  const date = new Date(`${value}T12:00:00+05:30`);
+  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('en-IN', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata'
+  }).format(date);
+}
+
+function formatCourtClock(value) {
+  if (!value) return '';
+  const match = String(value).match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return value;
+  const hour = Number(match[1]);
+  const suffix = hour >= 12 ? 'pm' : 'am';
+  return `${hour % 12 || 12}:${match[2]} ${suffix} IST`;
+}
 document.addEventListener('DOMContentLoaded', async () => {
+
   currentUser = Auth.getUser();
   if (!currentUser) {
     window.location.href = '/auth';
@@ -21,51 +57,187 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize Lucide icons
   lucide.createIcons();
 
-  // Load Dashboard Data
-  await loadOverviewMetrics();
-  await loadLiveBoards();
-  await loadCasesTable();
-  await loadSchedulingCases();
-  await loadCauseList();
-  await loadVirtualHearingDropdown();
-  await loadNotifications();
-  await loadAuditLogs();
+  // Set the local court date before loading date-dependent views.
+  const clInput = document.getElementById('causelist-date-input');
+  if (clInput) clInput.value = getCourtLocalDateInputValue();
 
+  // Load only the sections each role uses on arrival.
+  await loadOverviewMetrics();
+  if (currentUser.role === 'LITIGANT') {
+    await loadCasesTable();
+    await loadCauseList();
+    await loadNotifications();
+  } else {
+    await loadLiveBoards();
+    await loadCasesTable();
+    await loadSchedulingCases();
+    await loadCauseList();
+    await loadVirtualHearingDropdown();
+    await loadNotifications();
+    await loadAuditLogs();
+  }
+  if (currentUser.role === 'COURT_CLERK' || currentUser.role === 'ADMINISTRATOR') {
+    await loadRegisteredLitigants();
+  }
   // Setup Role-Specific UI views
   applyRoleVisibility();
 
-  // Set today's date on cause list input
-  const todayStr = new Date().toISOString().split('T')[0];
-  const clInput = document.getElementById('causelist-date-input');
-  if (clInput) clInput.value = todayStr;
 });
 
 function applyRoleVisibility() {
+  if (currentUser.role === 'ADMINISTRATOR') {
+    document.getElementById('tab-btn-user-management')?.classList.remove('hidden');
+    updateStaffRoleFields();
+    loadManagedStaffAccounts();
+    loadManagedCourtrooms();
+  }
+
   if (currentUser.role === 'COURT_CLERK' || currentUser.role === 'ADMINISTRATOR') {
     const filingCard = document.getElementById('clerk-case-filing-card');
     if (filingCard) filingCard.classList.remove('hidden');
   }
-}
 
+  if (currentUser.role === 'LITIGANT') {
+    document.body.classList.add('litigant-view');
+    document.getElementById('litigant-home')?.classList.remove('hidden');
+    document.getElementById('notifications-heading')?.replaceChildren('Case updates & messages');
+    const greetingName = document.getElementById('litigant-greeting-name');
+    if (greetingName) greetingName.textContent = (currentUser.name || 'there').split(' ')[0];
+    document.getElementById('metrics-ribbon')?.classList.add('hidden');
+    document.getElementById('audit-trail-card')?.classList.add('hidden');
+    ['live-boards', 'scheduler', 'virtual-court'].forEach(id => {
+      document.getElementById(`tab-btn-${id}`)?.classList.add('hidden');
+      document.getElementById(`tab-${id}`)?.classList.add('hidden');
+    });
+    document.getElementById('tab-btn-home')?.classList.remove('hidden');
+    document.getElementById('tab-btn-cases')?.querySelector('span')?.replaceChildren('My cases');
+    document.getElementById('tab-btn-causelist')?.querySelector('span')?.replaceChildren('Hearing schedule');
+    document.getElementById('tab-btn-notifications')?.querySelector('span')?.replaceChildren('Updates');
+    document.querySelectorAll('.tab-btn').forEach(button => {
+      button.classList.remove('active', 'bg-blue-600/20', 'text-blue-300', 'border-blue-500/30');
+      button.setAttribute('aria-pressed', 'false');
+    });
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+  }
+}
 // Tab Switching
 function switchTab(tabId) {
+  if (tabId === 'user-management' && currentUser?.role !== 'ADMINISTRATOR') return;
   document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+  const litigantHome = document.getElementById('litigant-home');
+  if (litigantHome && currentUser?.role === 'LITIGANT') litigantHome.classList.toggle('hidden', tabId !== 'home');
   document.querySelectorAll('.tab-btn').forEach(el => {
+    el.setAttribute('aria-pressed', 'false');
     el.classList.remove('bg-blue-600/20', 'text-blue-300', 'border-blue-500/30');
     el.classList.add('text-slate-400', 'border-transparent');
   });
 
   const activePane = document.getElementById(`tab-${tabId}`);
   if (activePane) activePane.classList.remove('hidden');
+  if (tabId === 'home') {
+    const homeButton = document.getElementById('tab-btn-home');
+    homeButton?.classList.add('active');
+    homeButton?.setAttribute('aria-pressed', 'true');
+    homeButton?.classList.remove('text-slate-400', 'border-transparent');
+    return;
+  }
 
   const activeBtn = document.getElementById(`tab-btn-${tabId}`);
   if (activeBtn) {
-    activeBtn.classList.add('bg-blue-600/20', 'text-blue-300', 'border-blue-500/30');
+    activeBtn.classList.add('active', 'bg-blue-600/20', 'text-blue-300', 'border-blue-500/30');
+    activeBtn.setAttribute('aria-pressed', 'true');
     activeBtn.classList.remove('text-slate-400', 'border-transparent');
   }
 }
 
 // 1. Overview Metrics Ribbon
+async function renderLitigantHome(metrics) {
+  const nextHearingContainer = document.getElementById('litigant-next-hearing');
+  const casesContainer = document.getElementById('litigant-cases-list');
+  const cases = Array.isArray(metrics.my_cases) ? metrics.my_cases : [];
+  const statusCopy = {
+    Registered: { label: 'Filed', explanation: 'Your case has been registered.' },
+    Active: { label: 'In court', explanation: 'Your case is active in court.' },
+    Pending: { label: 'Waiting for court action', explanation: 'Your case is waiting for a hearing or decision.' },
+    Disposed: { label: 'Disposed', explanation: 'The court has disposed of this case.' }
+  };
+
+  casesContainer.replaceChildren();
+  if (!cases.length) {
+    const empty = document.createElement('p');
+    empty.className = 'litigant-empty-state';
+    empty.textContent = 'No cases are linked to your account yet. If you expected to see a case here, contact the court registry.';
+    casesContainer.appendChild(empty);
+  } else {
+    cases.forEach(caseItem => {
+      const card = document.createElement('article');
+      card.className = 'litigant-case-card';
+      const details = statusCopy[caseItem.status] || { label: 'Status update', explanation: 'Check the case details for the latest update.' };
+      const header = document.createElement('div');
+      header.className = 'litigant-case-card-header';
+      const number = document.createElement('span');
+      number.className = 'litigant-case-number';
+      number.textContent = caseItem.case_number || 'Case number unavailable';
+      const status = document.createElement('span');
+      status.className = 'litigant-case-status';
+      status.textContent = details.label;
+      header.append(number, status);
+      const title = document.createElement('h3');
+      title.textContent = caseItem.title || 'Case';
+      const description = document.createElement('p');
+      description.textContent = details.explanation;
+      const action = document.createElement('button');
+      action.type = 'button';
+      action.className = 'litigant-secondary-action';
+      action.textContent = 'View case details';
+      action.setAttribute('aria-label', `View details for ${caseItem.case_number || 'this case'}`);
+      action.addEventListener('click', () => openCaseDossier(caseItem.case_id));
+      card.append(header, title, description, action);
+      casesContainer.appendChild(card);
+    });
+  }
+
+  nextHearingContainer.replaceChildren();
+  let upcomingHearings = [];
+  try {
+    const hearings = await api('/hearings?limit=100');
+    const today = getCourtLocalDateInputValue();
+    upcomingHearings = hearings
+      .filter(hearing => hearing.hearing_date >= today && !['Cancelled', 'Completed', 'Postponed'].includes(hearing.hearing_status))
+      .sort((a, b) => `${a.hearing_date}T${a.hearing_time}`.localeCompare(`${b.hearing_date}T${b.hearing_time}`));
+  } catch (err) {
+    const unavailable = document.createElement('p');
+    unavailable.className = 'litigant-empty-state';
+    unavailable.textContent = 'Hearing information is unavailable right now. Please check the hearing schedule again.';
+    nextHearingContainer.appendChild(unavailable);
+    return;
+  }
+
+  if (!upcomingHearings.length) {
+    const empty = document.createElement('p');
+    empty.className = 'litigant-empty-state';
+    empty.textContent = 'No upcoming hearing date is listed for your cases right now.';
+    nextHearingContainer.appendChild(empty);
+    return;
+  }
+
+  const next = upcomingHearings[0];
+  const dateLabel = next.hearing_date === getCourtLocalDateInputValue() ? 'Today' : formatCourtDateOnly(next.hearing_date);
+  const caseItem = cases.find(item => item.case_id === next.case_id);
+  const date = document.createElement('p');
+  date.className = 'next-hearing-date';
+  date.textContent = dateLabel;
+  const time = document.createElement('p');
+  time.className = 'next-hearing-time';
+  time.textContent = `${formatCourtClock(next.hearing_time)} · ${next.hearing_type || 'Court hearing'}`;
+  const caseNumber = document.createElement('p');
+  caseNumber.className = 'next-hearing-case';
+  caseNumber.textContent = caseItem?.case_number || next.case_number || 'Case details';
+  const venue = document.createElement('p');
+  venue.className = 'next-hearing-venue';
+  venue.textContent = [next.courtroom_name, next.courtroom_location].filter(Boolean).join(' · ') || 'Courtroom details not available';
+  nextHearingContainer.append(date, time, caseNumber, venue);
+}
 async function loadOverviewMetrics() {
   try {
     const data = await api('/dashboard/overview');
@@ -84,6 +256,13 @@ async function loadOverviewMetrics() {
       badge.classList.add('hidden');
     }
 
+    if (currentUser.role === 'LITIGANT') {
+      ribbon.classList.add('hidden');
+      await renderLitigantHome(metrics);
+      lucide.createIcons();
+      return;
+    }
+    ribbon.classList.remove('hidden');
     const cards = [];
 
     if (currentUser.role === 'ADMINISTRATOR') {
@@ -98,7 +277,7 @@ async function loadOverviewMetrics() {
         { label: 'Assigned Bench Cases', val: metrics.assigned_cases_count || 0, icon: 'briefcase', color: 'blue' },
         { label: "Today's Hearings", val: metrics.today_hearings_count || 0, icon: 'calendar', color: 'indigo' },
         { label: 'Pending Judgments', val: metrics.pending_judgments || 0, icon: 'clock', color: 'amber' },
-        { label: 'Court Status', val: 'Active Bench', icon: 'check-circle', color: 'emerald' }
+        { label: 'Bench availability', val: metrics.judge_availability || 'Not set', icon: 'check-circle', color: 'emerald' }
       );
     } else if (currentUser.role === 'COURT_CLERK') {
       cards.push(
@@ -111,15 +290,15 @@ async function loadOverviewMetrics() {
       cards.push(
         { label: 'Assigned Cases', val: metrics.total_assigned_cases || 0, icon: 'briefcase', color: 'blue' },
         { label: 'Upcoming Hearings', val: metrics.upcoming_hearings_count || 0, icon: 'clock', color: 'indigo' },
-        { label: 'Filings Admitted', val: 'Verified', icon: 'shield-check', color: 'emerald' },
-        { label: 'Client Representation', val: 'Active', icon: 'user-check', color: 'teal' }
+        { label: 'Active cases', val: metrics.active_assigned_cases_count || 0, icon: 'activity', color: 'emerald' },
+        { label: 'Case documents', val: metrics.assigned_case_documents_count || 0, icon: 'file-text', color: 'teal' }
       );
     } else { // Litigant
       cards.push(
         { label: 'My Registered Cases', val: metrics.my_cases_count || 0, icon: 'folder', color: 'blue' },
-        { label: 'Next Hearing Date', val: 'Listed Online', icon: 'calendar', color: 'emerald' },
-        { label: 'Orders & Notices', val: 'Available', icon: 'file-text', color: 'indigo' },
-        { label: 'Representation', val: 'Counsel Assigned', icon: 'user', color: 'teal' }
+        { label: 'Upcoming Hearings', val: metrics.upcoming_hearings_count || 0, icon: 'calendar', color: 'emerald' },
+        { label: 'Case documents', val: metrics.my_case_documents_count || 0, icon: 'file-text', color: 'indigo' },
+        { label: 'Assigned advocates', val: metrics.assigned_advocates_count || 0, icon: 'user', color: 'teal' }
       );
     }
 
@@ -384,7 +563,7 @@ async function loadCasesTable() {
           <span class="font-medium text-slate-300">${c.case_type}</span>
           <span class="block text-[10px] font-mono text-slate-500">${c.priority}</span>
         </td>
-        <td class="py-3 px-4 text-slate-300">${c.litigant_name || 'N/A'}</td>
+        <td class="py-3 px-4 text-slate-300">${c.litigant_name || 'Not recorded'}</td>
         <td class="py-3 px-4">
           <span class="px-2 py-0.5 rounded text-[10px] font-mono font-medium border ${statusColors[c.case_status] || statusColors.Registered}">
             ${c.case_status}
@@ -420,8 +599,11 @@ async function handleCaseRegistration(e) {
   const desc = document.getElementById('case-desc-input').value.trim();
 
   try {
-    // Default litigant ID to 7 (Rajesh Kumar) or active user if litigant
-    const litigantId = currentUser.role === 'LITIGANT' ? currentUser.user_id : 7;
+    const litigantId = Number(document.getElementById('case-litigant-input').value);
+    if (!litigantId) {
+      showToast('Select a registered litigant before filing this case.', 'warning');
+      return;
+    }
 
     const res = await api('/cases', {
       method: 'POST',
@@ -444,6 +626,31 @@ async function handleCaseRegistration(e) {
   }
 }
 
+async function loadRegisteredLitigants() {
+  const select = document.getElementById('case-litigant-input');
+  if (!select) return;
+  select.replaceChildren();
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'Select a registered litigant';
+  select.appendChild(placeholder);
+  try {
+    const litigants = await api('/users?role=LITIGANT&limit=100');
+    litigants.forEach(litigant => {
+      const option = document.createElement('option');
+      option.value = String(litigant.user_id);
+      option.textContent = `${litigant.name} · ${litigant.username}`;
+      select.appendChild(option);
+    });
+    select.disabled = litigants.length === 0;
+    if (!litigants.length) placeholder.textContent = 'No litigant accounts registered';
+  } catch (error) {
+    select.disabled = true;
+    placeholder.textContent = 'Could not load litigant accounts';
+    showToast(error.message || 'Could not load registered litigants.', 'error');
+  }
+}
+
 // Case Dossier Modal
 async function openCaseDossier(caseId) {
   const modal = document.getElementById('case-detail-modal');
@@ -456,12 +663,38 @@ async function openCaseDossier(caseId) {
     document.getElementById('modal-case-number').innerText = `${dossier.case_number} - Dossier`;
     document.getElementById('modal-case-title').innerText = `${dossier.title} • ${dossier.case_type} • Status: ${dossier.case_status}`;
 
+    const caseProgressByStatus = {
+      Registered: { step: 0, label: 'Filed', message: 'Your case has been registered by the court.' },
+      Active: { step: 1, label: 'In court', message: 'Your case is active and moving through court proceedings.' },
+      Pending: { step: 1, label: 'In court', message: 'Your case is waiting for a hearing or court decision.' },
+      Disposed: { step: 2, label: 'Disposed', message: 'The court has disposed of this case.' }
+    };
+    const caseProgress = caseProgressByStatus[dossier.case_status] || {
+      step: 0, label: 'Filed', message: 'Current case status: ' + dossier.case_status + '.'
+    };
+    const caseProgressSteps = ['Filed', 'In court', 'Disposed'].map((label, index) => {
+      const stateClass = index < caseProgress.step ? 'is-complete' : index === caseProgress.step ? 'is-current' : '';
+      const marker = index < caseProgress.step ? '✓' : String(index + 1);
+      const current = index === caseProgress.step ? 'aria-current="step"' : '';
+      return `<li class="case-progress-step ${stateClass}" ${current}><span class="case-progress-marker">${marker}</span><span>${label}</span></li>`;
+    }).join('');
     modalContent.innerHTML = `
+      <section class="case-progress-card" aria-labelledby="case-progress-title">
+        <div class="case-progress-heading">
+          <div>
+            <p class="case-progress-kicker"><span lang="hi">न्याय की राह</span> · NYAYA KI RAAH</p>
+            <h4 id="case-progress-title">Your case progress</h4>
+          </div>
+          <span class="case-progress-status">${caseProgress.label}</span>
+        </div>
+        <p class="case-progress-message">${caseProgress.message}</p>
+        <ol class="case-progress-steps" aria-label="Three broad case stages">${caseProgressSteps}</ol>
+      </section>
       <!-- Case Info Bar -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-slate-900/80 border border-white/5 text-xs font-mono">
         <div><span class="text-slate-500 block">FILING DATE</span>${dossier.filing_date}</div>
         <div><span class="text-slate-500 block">PRIORITY</span><span class="text-amber-400 font-bold">${dossier.priority}</span></div>
-        <div><span class="text-slate-500 block">LITIGANT</span>${dossier.litigant_name || 'N/A'}</div>
+        <div><span class="text-slate-500 block">LITIGANT</span>${dossier.litigant_name || 'Not recorded'}</div>
         <div><span class="text-slate-500 block">COUNSELS</span>${dossier.lawyers.length > 0 ? dossier.lawyers.map(l => l.name).join(', ') : 'None assigned'}</div>
       </div>
 
@@ -507,7 +740,7 @@ async function openCaseDossier(caseId) {
             <div class="p-2.5 rounded-lg bg-slate-950/50 border-l-2 border-emerald-500 text-slate-300">
               <div class="flex justify-between font-mono text-[10px] text-slate-500">
                 <span class="font-bold text-emerald-400">${h.event}</span>
-                <span>${h.date_time.replace('T', ' ').substring(0, 16)} UTC</span>
+                <span>${formatCourtDateTime(h.date_time)}</span>
               </div>
               <p class="mt-1 text-slate-300 text-[11px]">${h.description}</p>
             </div>
@@ -783,7 +1016,7 @@ async function loadNotifications() {
       item.innerHTML = `
         <div class="flex items-center justify-between mb-1">
           <span class="font-bold text-white">${n.title}</span>
-          <span class="text-[10px] font-mono text-slate-500">${n.date_time.replace('T', ' ').substring(0, 16)}</span>
+          <span class="text-[10px] font-mono text-slate-500">${formatCourtDateTime(n.date_time)}</span>
         </div>
         <p class="text-[11px] text-slate-300 leading-relaxed">${n.message.replace(/\n/g, '<br/>')}</p>
       `;
@@ -824,7 +1057,7 @@ async function loadAuditLogs() {
           <span class="text-slate-500 ml-1.5">[${l.entity_type}]</span>
           <div class="text-[11px] text-slate-300 mt-0.5">${l.details || ''}</div>
         </div>
-        <span class="text-[10px] text-slate-500 shrink-0">${l.date_time.substring(11, 19)} UTC</span>
+        <span class="text-[10px] text-slate-500 shrink-0">${formatCourtDateTime(l.date_time, false)}</span>
       `;
       container.appendChild(el);
     });
@@ -833,32 +1066,196 @@ async function loadAuditLogs() {
   }
 }
 
-// Quick Demo Role Switcher
-async function switchDemoRole(username) {
+function updateStaffRoleFields() {
+  const role = document.getElementById('staff-role')?.value;
+  const clerkFields = document.getElementById('clerk-account-fields');
+  const judgeFields = document.getElementById('judge-account-fields');
+  const advocateFields = document.getElementById('advocate-account-fields');
+  if (!clerkFields || !judgeFields || !advocateFields) return;
+
+  clerkFields.classList.toggle('hidden', role !== 'COURT_CLERK');
+  judgeFields.classList.toggle('hidden', role !== 'JUDGE');
+  advocateFields.classList.toggle('hidden', role !== 'LAWYER');
+  document.getElementById('staff-employee-id').required = role === 'COURT_CLERK';
+  document.getElementById('staff-employee-id').disabled = role !== 'COURT_CLERK';
+  document.getElementById('staff-bar-registration').required = role === 'LAWYER';
+  document.getElementById('staff-bar-registration').disabled = role !== 'LAWYER';
+  document.getElementById('staff-specialization').disabled = role !== 'JUDGE';
+}
+
+function setStaffAccountFeedback(message, kind = 'success') {
+  const feedback = document.getElementById('staff-account-feedback');
+  feedback.textContent = message;
+  feedback.classList.remove('hidden', 'staff-feedback-success', 'staff-feedback-error');
+  feedback.classList.add(kind === 'error' ? 'staff-feedback-error' : 'staff-feedback-success');
+}
+
+async function createStaffAccount(event) {
+  event.preventDefault();
+  if (currentUser?.role !== 'ADMINISTRATOR') return;
+  const form = document.getElementById('staff-account-form');
+  const submit = document.getElementById('staff-account-submit');
+  const role = document.getElementById('staff-role').value;
+  const payload = {
+    name: document.getElementById('staff-name').value.trim(),
+    email: document.getElementById('staff-email').value.trim(),
+    mobile_no: document.getElementById('staff-mobile').value.trim(),
+    username: document.getElementById('staff-username').value.trim(),
+    password: document.getElementById('staff-password').value,
+    role
+  };
+
+  if (role === 'COURT_CLERK') payload.employee_id = document.getElementById('staff-employee-id').value.trim();
+  if (role === 'JUDGE') payload.specialization = document.getElementById('staff-specialization').value.trim() || 'General';
+  if (role === 'LAWYER') payload.bar_registration_no = document.getElementById('staff-bar-registration').value.trim();
+
+  submit.disabled = true;
+  submit.textContent = 'Creating account…';
   try {
-    const res = await api('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({
-        username_or_email: username,
-        password: 'Password@123'
-      })
-    });
-
-    Auth.setAuth(res.access_token, {
-      user_id: res.user_id,
-      name: res.name,
-      email: res.email,
-      username: res.username,
-      role: res.role
-    });
-
-    showToast(`Switched active role to: <b>${res.role}</b> (${res.name})`, 'success');
-    setTimeout(() => {
-      window.location.reload();
-    }, 400);
-  } catch (err) {
-    showToast(`Role switch failed: ${err.message}`, 'error');
+    const created = await api('/users', { method: 'POST', body: JSON.stringify(payload) });
+    setStaffAccountFeedback(`${role.replace('_', ' ')} account created for ${created.name}. Sign-in username: ${created.username}.`, 'success');
+    form.reset();
+    updateStaffRoleFields();
+    await loadManagedStaffAccounts();
+  } catch (error) {
+    setStaffAccountFeedback(error.message || 'Account could not be created. Check the details and try again.', 'error');
+  } finally {
+    submit.disabled = false;
+    submit.textContent = 'Create account';
   }
+}
+
+async function loadManagedStaffAccounts() {
+  if (currentUser?.role !== 'ADMINISTRATOR') return;
+  const list = document.getElementById('managed-staff-list');
+  if (!list) return;
+  list.replaceChildren();
+  const loading = document.createElement('p');
+  loading.className = 'text-sm text-slate-600';
+  loading.textContent = 'Loading accounts…';
+  list.appendChild(loading);
+  try {
+    const users = await api('/users?limit=100');
+    const staff = users.filter(user => ['COURT_CLERK', 'JUDGE', 'LAWYER'].includes(user.role));
+    list.replaceChildren();
+    if (!staff.length) {
+      const empty = document.createElement('p');
+      empty.className = 'text-sm leading-relaxed text-slate-600';
+      empty.textContent = 'No clerk, judge, or advocate accounts have been registered yet.';
+      list.appendChild(empty);
+      return;
+    }
+
+    staff.forEach(user => {
+      const card = document.createElement('article');
+      card.className = 'staff-account-card';
+      const heading = document.createElement('div');
+      heading.className = 'staff-account-card-heading';
+      const name = document.createElement('h4');
+      name.textContent = user.name;
+      const role = document.createElement('span');
+      role.className = 'staff-account-role';
+      role.textContent = ({ COURT_CLERK: 'Court clerk', JUDGE: 'Judge', LAWYER: 'Advocate' })[user.role] || user.role;
+      heading.append(name, role);
+      const details = document.createElement('p');
+      details.textContent = `${user.username} · ${user.email}`;
+      const status = document.createElement('p');
+      status.className = 'staff-account-status';
+      status.textContent = user.is_active ? 'Active account' : 'Inactive account';
+      card.append(heading, details, status);
+      list.appendChild(card);
+    });
+  } catch (error) {
+    list.replaceChildren();
+    const message = document.createElement('p');
+    message.className = 'staff-feedback-error rounded-xl border px-4 py-3 text-sm';
+    message.textContent = error.message || 'Could not load accounts.';
+    list.appendChild(message);
+  }
+}
+
+function setCourtroomFeedback(message, kind = 'success') {
+  const feedback = document.getElementById('courtroom-feedback');
+  feedback.textContent = message;
+  feedback.classList.remove('hidden', 'staff-feedback-success', 'staff-feedback-error');
+  feedback.classList.add(kind === 'error' ? 'staff-feedback-error' : 'staff-feedback-success');
+}
+
+async function createCourtroom(event) {
+  event.preventDefault();
+  if (currentUser?.role !== 'ADMINISTRATOR') return;
+  const form = document.getElementById('courtroom-form');
+  const submit = form.querySelector('button[type="submit"]');
+  submit.disabled = true;
+  submit.textContent = 'Registering courtroom…';
+  const payload = {
+    courtroom_name: document.getElementById('courtroom-name').value.trim(),
+    location: document.getElementById('courtroom-location').value.trim(),
+    capacity: Number(document.getElementById('courtroom-capacity').value)
+  };
+  try {
+    const courtroom = await api('/hearings/courtrooms', { method: 'POST', body: JSON.stringify(payload) });
+    setCourtroomFeedback(`${courtroom.courtroom_name} has been registered.`, 'success');
+    form.reset();
+    await loadManagedCourtrooms();
+  } catch (error) {
+    setCourtroomFeedback(error.message || 'Could not register the courtroom. Check the details and try again.', 'error');
+  } finally {
+    submit.disabled = false;
+    submit.textContent = 'Register courtroom';
+  }
+}
+
+async function loadManagedCourtrooms() {
+  if (currentUser?.role !== 'ADMINISTRATOR') return;
+  const list = document.getElementById('managed-courtroom-list');
+  if (!list) return;
+  list.replaceChildren();
+  const loading = document.createElement('p');
+  loading.className = 'text-sm text-slate-600';
+  loading.textContent = 'Loading courtrooms…';
+  list.appendChild(loading);
+  try {
+    const courtrooms = await api('/hearings/courtrooms/available');
+    list.replaceChildren();
+    if (!courtrooms.length) {
+      const empty = document.createElement('p');
+      empty.className = 'text-sm leading-relaxed text-slate-600';
+      empty.textContent = 'No courtrooms have been registered. Add courtrooms above to enable hearing scheduling.';
+      list.appendChild(empty);
+      return;
+    }
+    courtrooms.forEach(courtroom => {
+      const card = document.createElement('article');
+      card.className = 'staff-account-card';
+      const name = document.createElement('h4');
+      name.textContent = courtroom.courtroom_name;
+      const location = document.createElement('p');
+      location.textContent = courtroom.location;
+      const capacity = document.createElement('p');
+      capacity.className = 'staff-account-status';
+      capacity.textContent = `Seating capacity: ${courtroom.capacity}`;
+      card.append(name, location, capacity);
+      list.appendChild(card);
+    });
+  } catch (error) {
+    list.replaceChildren();
+    const message = document.createElement('p');
+    message.className = 'staff-feedback-error rounded-xl border px-4 py-3 text-sm';
+    message.textContent = error.message || 'Could not load courtrooms.';
+    list.appendChild(message);
+  }
+}
+
+function toggleStaffPasswordVisibility() {
+  const input = document.getElementById('staff-password');
+  const button = input.parentElement.querySelector('.password-visibility-toggle');
+  const isVisible = input.type === 'password';
+  input.type = isVisible ? 'text' : 'password';
+  button.setAttribute('aria-label', isVisible ? 'Hide password' : 'Show password');
+  button.setAttribute('aria-pressed', String(isVisible));
+  button.innerHTML = `<i data-lucide="${isVisible ? 'eye-off' : 'eye'}" class="h-5 w-5" aria-hidden="true"></i>`;
+  lucide.createIcons();
 }
 
 function handleLogout() {

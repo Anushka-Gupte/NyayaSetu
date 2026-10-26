@@ -32,7 +32,7 @@ def build_online_hearing_response(oh: OnlineHearing) -> OnlineHearingResponse:
     return OnlineHearingResponse(
         online_hearing_id=oh.online_hearing_id,
         hearing_id=oh.hearing_id,
-        case_number=case.case_number if case else f"Case #{h.case_id if h else 'N/A'}",
+        case_number=case.case_number if case else "Case details unavailable",
         case_title=case.title if case else "Judicial Matter",
         meeting_link=oh.meeting_link,
         meeting_passcode=oh.meeting_passcode,

@@ -22,10 +22,11 @@
     }
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/aceternity.css">
+  <link rel="stylesheet" href="/static/css/aceternity.css?v=20261026-role-management-2">
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-indigo-500/30 selection:text-indigo-200">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
 
   <!-- Ambient Glowing Background Lights -->
   <div class="fixed top-0 left-1/3 w-[800px] h-[500px] radial-glow-blue pointer-events-none -z-10"></div>
@@ -40,13 +41,13 @@
         
         <!-- Indian Judicial Logo -->
         <a href="/" class="flex items-center gap-3.5 group">
-          <div class="relative w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-amber-500/40 via-amber-400/20 to-blue-500/40 shadow-lg shadow-amber-500/10">
-            <img src="/static/img/nyayasetu-emblem.svg" alt="NyayaSetu Emblem" class="w-full h-full rounded-full">
+          <div class="relative w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-amber-600/45 via-amber-200/20 to-indigo-800/45 shadow-lg shadow-amber-500/10">
+            <img src="/static/img/nyayasetu-emblem.svg?v=constitutional-passage" alt="NyayaSetu Constitutional Passage: an open law book forming a path through a court arch" class="w-full h-full rounded-full">
           </div>
           <div>
             <div class="flex items-center gap-2">
               <span class="text-xl font-extrabold tracking-tight text-white">NyayaSetu</span>
-              <span class="text-xs font-serif text-amber-400/80 font-medium">न्यायसेतु</span>
+              <span lang="hi" class="text-xs font-serif text-amber-400/80 font-medium">न्यायसेतु</span>
             </div>
             <span class="text-[10px] font-mono tracking-wider block text-slate-400 -mt-0.5 uppercase">Judicial Portal</span>
           </div>
@@ -68,16 +69,6 @@
             <span id="nav-notif-badge" class="hidden absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-500 text-white font-mono text-[10px] font-bold flex items-center justify-center">0</span>
           </button>
 
-          <!-- Quick Role Switcher Pill Dropdown -->
-          <select id="quick-role-switch" onchange="switchDemoRole(this.value)" class="text-xs font-mono bg-slate-900 border border-white/10 text-slate-300 rounded-xl px-3 py-2 outline-none cursor-pointer hover:border-blue-500/50 transition">
-            <option value="" disabled selected>Switch Role Demo ▾</option>
-            <option value="admin">Administrator</option>
-            <option value="clerk1">Court Clerk</option>
-            <option value="judge_sharma">Judge Sharma</option>
-            <option value="adv_verma">Adv. Verma (Lawyer)</option>
-            <option value="rajesh_k">Rajesh Kumar (Litigant)</option>
-          </select>
-
           <!-- Sign Out -->
           <button onclick="handleLogout()" class="p-2.5 rounded-xl border border-white/5 bg-slate-900 hover:bg-rose-500/20 hover:text-rose-300 text-slate-400 transition" title="Log Out">
             <i data-lucide="log-out" class="w-4 h-4"></i>
@@ -88,38 +79,82 @@
     </header>
 
     <!-- Main Content Area -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
+    <main id="main-content" class="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
       
+
+      <section id="litigant-home" class="hidden litigant-home" aria-labelledby="litigant-home-title">
+        <div class="litigant-welcome">
+          <p class="litigant-kicker"><span lang="hi">आपके मामलों की जानकारी</span> · YOUR CASES</p>
+          <h1 id="litigant-home-title">Namaste, <span id="litigant-greeting-name">there</span></h1>
+          <p>Here is the latest information about your cases and hearings.</p>
+        </div>
+        <div class="litigant-home-grid">
+          <section class="next-hearing-panel" aria-labelledby="next-hearing-heading" aria-live="polite">
+            <div class="litigant-panel-heading">
+              <span class="civic-line-icon" aria-hidden="true"><i data-lucide="calendar-days" class="w-5 h-5"></i></span>
+              <div>
+                <p class="litigant-kicker"><span lang="hi">अगली सुनवाई</span> · NEXT HEARING</p>
+                <h2 id="next-hearing-heading">Your next hearing</h2>
+              </div>
+            </div>
+            <div id="litigant-next-hearing" class="next-hearing-content">
+              <p>Loading your hearing information…</p>
+            </div>
+            <button type="button" class="litigant-secondary-action" onclick="switchTab('causelist')">View hearing schedule</button>
+          </section>
+          <section class="my-cases-panel" aria-labelledby="my-cases-heading">
+            <div class="litigant-panel-heading">
+              <span class="civic-line-icon" aria-hidden="true"><i data-lucide="book-open-check" class="w-5 h-5"></i></span>
+              <div>
+                <p class="litigant-kicker"><span lang="hi">मामलों की स्थिति</span> · CASE STATUS</p>
+                <h2 id="my-cases-heading">Your cases</h2>
+              </div>
+            </div>
+            <div id="litigant-cases-list" class="litigant-cases-list" aria-live="polite">
+              <p>Loading your cases…</p>
+            </div>
+          </section>
+        </div>
+
+      </section>
       <!-- Top Metrics Ribbon (Aceternity Glass Style) -->
       <div id="metrics-ribbon" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         <!-- Rendered dynamically -->
       </div>
 
       <!-- Unified Interactive Tabs Header -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-6 border-b border-white/5 text-sm font-medium">
-        <button onclick="switchTab('live-boards')" id="tab-btn-live-boards" class="tab-btn active px-4 py-2.5 rounded-xl transition flex items-center gap-2 bg-blue-600/20 text-blue-300 border border-blue-500/30">
+      <div id="main-dashboard-navigation" role="group" aria-label="Dashboard sections" class="flex items-center gap-2 overflow-x-auto pb-4 mb-6 border-b border-white/5 text-sm font-medium">
+        <button onclick="switchTab('home')" id="tab-btn-home" aria-pressed="false" class="tab-btn hidden px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-400 border border-transparent">
+          <i data-lucide="house" class="w-4 h-4"></i>
+          <span>Overview</span>
+        </button>
+        <button onclick="switchTab('live-boards')" id="tab-btn-live-boards" aria-pressed="true" class="tab-btn active px-4 py-2.5 rounded-xl transition flex items-center gap-2 bg-blue-600/20 text-blue-300 border border-blue-500/30">
           <i data-lucide="monitor" class="w-4 h-4"></i>
           <span>Live Courtroom Board</span>
         </button>
-        <button onclick="switchTab('scheduler')" id="tab-btn-scheduler" class="tab-btn px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-400 hover:text-white border border-transparent">
+        <button onclick="switchTab('scheduler')" id="tab-btn-scheduler" aria-pressed="false" class="tab-btn px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-400 hover:text-white border border-transparent">
           <i data-lucide="cpu" class="w-4 h-4"></i>
           <span>AI Scheduling Studio</span>
         </button>
-        <button onclick="switchTab('cases')" id="tab-btn-cases" class="tab-btn px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-400 hover:text-white border border-transparent">
+        <button onclick="switchTab('cases')" id="tab-btn-cases" aria-pressed="false" class="tab-btn px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-400 hover:text-white border border-transparent">
           <i data-lucide="folder-kanban" class="w-4 h-4"></i>
           <span>Case Dossiers & Evidence</span>
         </button>
-        <button onclick="switchTab('causelist')" id="tab-btn-causelist" class="tab-btn px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-400 hover:text-white border border-transparent">
+        <button onclick="switchTab('causelist')" id="tab-btn-causelist" aria-pressed="false" class="tab-btn px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-400 hover:text-white border border-transparent">
           <i data-lucide="calendar" class="w-4 h-4"></i>
           <span>Daily Cause List & iCal</span>
         </button>
-        <button onclick="switchTab('virtual-court')" id="tab-btn-virtual-court" class="tab-btn px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-400 hover:text-white border border-transparent">
+        <button onclick="switchTab('virtual-court')" id="tab-btn-virtual-court" aria-pressed="false" class="tab-btn px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-400 hover:text-white border border-transparent">
           <i data-lucide="video" class="w-4 h-4"></i>
           <span>Virtual Court & Transcripts</span>
         </button>
-        <button onclick="switchTab('notifications')" id="tab-btn-notifications" class="tab-btn px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-400 hover:text-white border border-transparent">
+        <button onclick="switchTab('notifications')" id="tab-btn-notifications" aria-pressed="false" class="tab-btn px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-400 hover:text-white border border-transparent">
           <i data-lucide="bell" class="w-4 h-4"></i>
           <span>Notifications & Audit</span>
+        </button>
+        <button onclick="switchTab('user-management')" id="tab-btn-user-management" aria-pressed="false" class="tab-btn hidden px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-slate-400 hover:text-white border border-transparent">
+          <i data-lucide="user-round-plus" class="w-4 h-4"></i>
+          <span>Staff accounts</span>
         </button>
       </div>
 
@@ -200,11 +235,11 @@
 
           <form onsubmit="handleCaseRegistration(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
             <div class="md:col-span-2">
-              <label class="block text-slate-400 mb-1">Case Dispute Title</label>
-              <input type="text" id="case-title-input" required placeholder="e.g. State vs ABC Trading Corp" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500">
+              <label for="case-title-input" class="block text-slate-400 mb-1">Case dispute title</label>
+              <input type="text" id="case-title-input" required placeholder="Enter the title from the filing" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500">
             </div>
             <div>
-              <label class="block text-slate-400 mb-1">Case Type</label>
+              <label for="case-type-input" class="block text-slate-400 mb-1">Case type</label>
               <select id="case-type-input" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500">
                 <option value="Criminal">Criminal</option>
                 <option value="Civil">Civil</option>
@@ -214,7 +249,7 @@
               </select>
             </div>
             <div>
-              <label class="block text-slate-400 mb-1">Priority</label>
+              <label for="case-priority-input" class="block text-slate-400 mb-1">Priority</label>
               <select id="case-priority-input" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500">
                 <option value="Medium">Medium</option>
                 <option value="High">High</option>
@@ -222,8 +257,14 @@
                 <option value="Low">Low</option>
               </select>
             </div>
+            <div>
+              <label for="case-litigant-input" class="block text-slate-400 mb-1">Registered litigant</label>
+              <select id="case-litigant-input" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500">
+                <option value="">Loading registered litigants…</option>
+              </select>
+            </div>
             <div class="md:col-span-3">
-              <label class="block text-slate-400 mb-1">Description / Prayer Summary</label>
+              <label for="case-desc-input" class="block text-slate-400 mb-1">Description / prayer summary</label>
               <input type="text" id="case-desc-input" placeholder="Brief factual dispute statement..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500">
             </div>
             <div class="flex items-end">
@@ -412,16 +453,112 @@
         </div>
       </section>
 
+      <section id="tab-user-management" class="tab-pane hidden space-y-6" aria-labelledby="staff-accounts-title">
+        <div>
+          <p class="mb-1 text-sm font-semibold text-amber-800"><span lang="hi">न्यायालय प्रशासन</span> · ADMINISTRATION</p>
+          <h2 id="staff-accounts-title" class="text-2xl font-bold text-slate-900">Create court staff accounts</h2>
+          <p class="mt-1 max-w-3xl text-base leading-relaxed text-slate-600">Administrators can register court clerks, judges, and advocates. Litigants create their own accounts from the sign-in page.</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <form id="staff-account-form" onsubmit="createStaffAccount(event)" class="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7" autocomplete="off">
+            <div id="staff-account-feedback" class="hidden rounded-xl border px-4 py-3 text-sm leading-relaxed" role="status" aria-live="polite"></div>
+            <div>
+              <label for="staff-role" class="mb-1.5 block text-sm font-semibold text-slate-800">Account type</label>
+              <select id="staff-role" name="role" required onchange="updateStaffRoleFields()" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20">
+                <option value="COURT_CLERK">Court clerk</option>
+                <option value="JUDGE">Judge</option>
+                <option value="LAWYER">Advocate</option>
+              </select>
+            </div>
+            <div>
+              <label for="staff-name" class="mb-1.5 block text-sm font-semibold text-slate-800">Full name</label>
+              <input id="staff-name" name="name" autocomplete="off" required minlength="2" maxlength="120" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="Name as used for court work">
+            </div>
+            <div>
+              <label for="staff-email" class="mb-1.5 block text-sm font-semibold text-slate-800">Official email address</label>
+              <input id="staff-email" name="email" type="email" autocomplete="off" required maxlength="120" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="name@court.gov.in">
+            </div>
+            <div>
+              <label for="staff-mobile" class="mb-1.5 block text-sm font-semibold text-slate-800">Indian mobile number</label>
+              <input id="staff-mobile" name="mobile_no" type="tel" inputmode="tel" autocomplete="off" required pattern="(\+91[ -]?)?[6-9][0-9]{9}" title="Enter a valid 10-digit Indian mobile number, optionally with +91." class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="9876543210">
+            </div>
+            <div>
+              <label for="staff-username" class="mb-1.5 block text-sm font-semibold text-slate-800">Username</label>
+              <input id="staff-username" name="username" autocomplete="off" autocapitalize="none" spellcheck="false" required minlength="3" maxlength="60" pattern="[A-Za-z0-9_.-]+" title="Use letters, numbers, dots, underscores, or hyphens." class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="Choose a sign-in username">
+            </div>
+            <div id="clerk-account-fields">
+              <label for="staff-employee-id" class="mb-1.5 block text-sm font-semibold text-slate-800">Employee ID</label>
+              <input id="staff-employee-id" name="employee_id" required maxlength="50" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="Court-issued employee ID">
+            </div>
+            <div id="judge-account-fields" class="hidden">
+              <label for="staff-specialization" class="mb-1.5 block text-sm font-semibold text-slate-800">Judicial specialization</label>
+              <input id="staff-specialization" name="specialization" maxlength="100" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="For example, Civil or Criminal">
+            </div>
+            <div id="advocate-account-fields" class="hidden">
+              <label for="staff-bar-registration" class="mb-1.5 block text-sm font-semibold text-slate-800">Bar registration number</label>
+              <input id="staff-bar-registration" name="bar_registration_no" maxlength="80" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="State Bar Council registration">
+            </div>
+            <div>
+              <label for="staff-password" class="mb-1.5 block text-sm font-semibold text-slate-800">Initial password</label>
+              <div class="relative">
+                <input id="staff-password" name="new-password" type="password" autocomplete="new-password" required minlength="10" maxlength="72" class="w-full rounded-xl border border-slate-300 bg-white py-3 pl-4 pr-12 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="At least 10 characters">
+                <button type="button" class="password-visibility-toggle absolute inset-y-1 right-1 flex min-h-11 min-w-11 items-center justify-center rounded-lg" aria-label="Show password" aria-controls="staff-password" aria-pressed="false" onclick="toggleStaffPasswordVisibility()"><i id="staff-password-eye" data-lucide="eye" class="h-5 w-5" aria-hidden="true"></i></button>
+              </div>
+              <p class="mt-1 text-sm text-slate-600">Share this initial password securely with the account holder.</p>
+            </div>
+            <button id="staff-account-submit" type="submit" class="admin-create-user-submit min-h-12 w-full rounded-xl px-4 py-3 text-base font-semibold">Create account</button>
+          </form>
+
+          <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7" aria-labelledby="managed-staff-title">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 id="managed-staff-title" class="text-lg font-bold text-slate-900">Court accounts</h3>
+                <p class="mt-1 text-sm text-slate-600">Recently registered staff accounts.</p>
+              </div>
+              <button type="button" onclick="loadManagedStaffAccounts()" class="min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-amber-700">Refresh</button>
+            </div>
+            <div id="managed-staff-list" class="space-y-3" aria-live="polite"><p class="text-sm text-slate-600">Loading accounts…</p></div>
+          </section>
+        </div>
+
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7" aria-labelledby="courtroom-management-title">
+          <div class="mb-5">
+            <h3 id="courtroom-management-title" class="text-lg font-bold text-slate-900">Register courtrooms</h3>
+            <p class="mt-1 text-sm leading-relaxed text-slate-600">Only courtrooms entered by administration appear in hearing schedules.</p>
+          </div>
+          <form id="courtroom-form" onsubmit="createCourtroom(event)" class="grid grid-cols-1 gap-4 md:grid-cols-4" autocomplete="off">
+            <div class="md:col-span-2">
+              <label for="courtroom-name" class="mb-1.5 block text-sm font-semibold text-slate-800">Courtroom name</label>
+              <input id="courtroom-name" name="courtroom_name" required minlength="3" maxlength="100" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="Official courtroom name">
+            </div>
+            <div>
+              <label for="courtroom-location" class="mb-1.5 block text-sm font-semibold text-slate-800">Location</label>
+              <input id="courtroom-location" name="location" required minlength="2" maxlength="150" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="Building and floor">
+            </div>
+            <div>
+              <label for="courtroom-capacity" class="mb-1.5 block text-sm font-semibold text-slate-800">Seating capacity</label>
+              <input id="courtroom-capacity" name="capacity" type="number" required min="1" max="2000" value="50" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20">
+            </div>
+            <div class="md:col-span-4">
+              <button type="submit" class="admin-create-user-submit min-h-12 rounded-xl px-5 py-3 text-base font-semibold">Register courtroom</button>
+              <p id="courtroom-feedback" class="mt-3 hidden rounded-xl border px-4 py-3 text-sm" role="status" aria-live="polite"></p>
+            </div>
+          </form>
+          <div id="managed-courtroom-list" class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2" aria-live="polite"><p class="text-sm text-slate-600">Loading courtrooms…</p></div>
+        </section>
+      </section>
+
       <!-- TAB 6: Notifications & Audit Trail -->
       <section id="tab-notifications" class="tab-pane hidden space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div id="notifications-layout" class="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           <!-- Notifications Feed -->
           <div class="rounded-2xl glass-card border border-white/10 p-6">
             <div class="flex items-center justify-between pb-4 border-b border-white/10 mb-4">
               <div class="flex items-center gap-2">
                 <i data-lucide="bell" class="w-5 h-5 text-blue-400"></i>
-                <h4 class="font-bold text-white text-base">Your Judicial Notifications</h4>
+                <h4 id="notifications-heading" class="font-bold text-white text-base">Your Judicial Notifications</h4>
               </div>
               <button onclick="markAllNotificationsRead()" class="text-xs font-mono text-blue-400 hover:text-blue-300 transition">Mark all as read</button>
             </div>
@@ -432,7 +569,7 @@
           </div>
 
           <!-- Audit Trail Log (Admin & Staff View) -->
-          <div class="rounded-2xl glass-card border border-white/10 p-6">
+          <div id="audit-trail-card" class="rounded-2xl glass-card border border-white/10 p-6">
             <div class="flex items-center justify-between pb-4 border-b border-white/10 mb-4">
               <div class="flex items-center gap-2">
                 <i data-lucide="shield-check" class="w-5 h-5 text-emerald-400"></i>
@@ -454,6 +591,6 @@
   </div>
 
   <script src="/static/js/api.js"></script>
-  <script src="/static/js/dashboard.js"></script>
+  <script src="/static/js/dashboard.js?v=20261026-real-records-1"></script>
 </body>
 </html>

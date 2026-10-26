@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 
 from app.core.database import get_db
 from app.core.security import verify_password, create_access_token, get_password_hash
@@ -13,12 +14,69 @@ from app.schemas.auth import (
     LoginRequest,
     UserProfileResponse,
     PasswordResetRequest,
-    PasswordResetConfirm
+    PasswordResetConfirm,
+    CitizenRegistrationRequest,
 )
 from app.api.deps import get_current_active_user
 from app.services.audit_service import AuditService
 
 router = APIRouter()
+
+@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED, summary="Register a Citizen Account")
+def register_citizen(
+    registration: CitizenRegistrationRequest,
+    request: Request = None,
+    db: Session = Depends(get_db)
+):
+    """Create a citizen (litigant) account and sign it in. Privileged roles are never self-assigned."""
+    username = registration.username
+    existing = db.query(User).filter(
+        or_(User.username == username, User.email == registration.email)
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with this username or email already exists. Try signing in instead."
+        )
+
+    user = Litigant(
+        name=registration.name,
+        email=registration.email,
+        mobile_no=registration.mobile_no,
+        username=username,
+        password=get_password_hash(registration.password),
+        role=UserRole.LITIGANT,
+        address=registration.address or "Address not provided"
+    )
+    db.add(user)
+    try:
+        db.commit()
+        db.refresh(user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with this username or email already exists. Try signing in instead."
+        )
+
+    AuditService.log(
+        db=db,
+        action="USER_SELF_REGISTERED",
+        entity_type="User",
+        entity_id=str(user.user_id),
+        user_id=user.user_id,
+        details=f"Citizen account {user.username} registered",
+        ip_address=request.client.host if (request and request.client) else None
+    )
+    token = create_access_token(data={"sub": user.username, "role": user.role.value, "user_id": user.user_id})
+    return TokenResponse(
+        access_token=token,
+        user_id=user.user_id,
+        name=user.name,
+        email=user.email,
+        username=user.username,
+        role=user.role
+    )
 
 def build_user_profile(user: User) -> UserProfileResponse:
     profile_data = {
@@ -60,8 +118,9 @@ def login(
     """
     client_ip = request.client.host if (request and request.client) else None
 
+    identifier = login_data.username_or_email.strip()
     user = db.query(User).filter(
-        or_(User.username == login_data.username_or_email, User.email == login_data.username_or_email)
+        or_(User.username == identifier, User.email == identifier)
     ).first()
 
     if not user or not verify_password(login_data.password, user.password):
@@ -84,6 +143,21 @@ def login(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User account is deactivated. Contact Court Administration."
+        )
+
+    if login_data.expected_role and user.role != login_data.expected_role:
+        AuditService.log(
+            db=db,
+            action="LOGIN_ROLE_MISMATCH",
+            entity_type="User",
+            entity_id=str(user.user_id),
+            user_id=user.user_id,
+            details=f"User {user.username} selected {login_data.expected_role.value} at sign in",
+            ip_address=client_ip
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="These credentials belong to a different role. Select the role assigned to your account."
         )
 
     # Generate JWT

@@ -295,12 +295,12 @@ def get_calendar_events(
             hearing_id=h.hearing_id,
             case_id=h.case_id,
             case_number=c.case_number if c else f"Case #{h.case_id}",
-            title=c.title if c else "Court Proceeding",
+            title=c.title if c else "Case details unavailable",
             hearing_date=h.hearing_date,
             start_time=start_time_str,
             end_time=end_time_str,
-            courtroom_name=h.courtroom.courtroom_name if h.courtroom else "Courtroom",
-            judge_name=h.judge.name if h.judge else "Judge",
+            courtroom_name=h.courtroom.courtroom_name if h.courtroom else "Not allocated",
+            judge_name=h.judge.name if h.judge else "Not assigned",
             hearing_type=h.hearing_type,
             status=h.hearing_status
         ))

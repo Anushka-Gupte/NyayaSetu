@@ -3,6 +3,7 @@ from datetime import datetime, date, time
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 
 from app.core.database import get_db
 from app.models.user import User, UserRole, Judge
@@ -20,6 +21,7 @@ from app.schemas.hearing import (
     ConflictCheckRequest,
     ConflictCheckResponse,
     HearingResponse,
+    CourtroomCreate,
     CourtroomResponse
 )
 from app.api.deps import get_current_active_user, require_roles
@@ -472,3 +474,41 @@ def list_courtrooms(
     """
     courtrooms = db.query(Courtroom).all()
     return [CourtroomResponse.model_validate(c) for c in courtrooms]
+
+
+@router.post("/courtrooms", response_model=CourtroomResponse, status_code=status.HTTP_201_CREATED, summary="Register Courtroom (Administrator)")
+def create_courtroom(
+    courtroom_in: CourtroomCreate,
+    request: Request = None,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(require_roles(UserRole.ADMINISTRATOR))
+):
+    """Add an actual courtroom record supplied by court administration."""
+    existing = db.query(Courtroom).filter(Courtroom.courtroom_name == courtroom_in.courtroom_name).first()
+    if existing:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="A courtroom with this name already exists.")
+
+    courtroom = Courtroom(
+        courtroom_name=courtroom_in.courtroom_name,
+        location=courtroom_in.location,
+        capacity=courtroom_in.capacity,
+        availability=True
+    )
+    db.add(courtroom)
+    try:
+        db.commit()
+        db.refresh(courtroom)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="A courtroom with this name already exists.")
+
+    AuditService.log(
+        db=db,
+        action="COURTROOM_CREATED",
+        entity_type="Courtroom",
+        entity_id=str(courtroom.courtroom_id),
+        user_id=current_admin.user_id,
+        details=f"Courtroom {courtroom.courtroom_name} registered by {current_admin.username}",
+        ip_address=request.client.host if (request and request.client) else None
+    )
+    return CourtroomResponse.model_validate(courtroom)

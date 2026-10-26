@@ -22,10 +22,11 @@
     }
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/aceternity.css">
+  <link rel="stylesheet" href="/static/css/aceternity.css?v=20261026-role-auth-1">
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500/30 selection:text-indigo-200">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
 
   <!-- Main Container -->
   <div class="min-h-screen flex flex-col md:flex-row relative">
@@ -40,13 +41,13 @@
       <!-- Top Branding -->
       <div>
         <a href="/" class="flex items-center gap-3.5 group">
-          <div class="relative w-11 h-11 rounded-full p-0.5 bg-gradient-to-tr from-amber-500/40 via-amber-400/20 to-blue-500/40 shadow-lg shadow-amber-500/10">
-            <img src="/static/img/nyayasetu-emblem.svg" alt="NyayaSetu Emblem" class="w-full h-full rounded-full">
+          <div class="relative w-11 h-11 rounded-full p-0.5 bg-gradient-to-tr from-amber-600/45 via-amber-200/20 to-indigo-800/45 shadow-lg shadow-amber-500/10">
+            <img src="/static/img/nyayasetu-emblem.svg?v=constitutional-passage" alt="NyayaSetu Constitutional Passage: an open law book forming a path through a court arch" class="w-full h-full rounded-full">
           </div>
           <div>
             <div class="flex items-center gap-2">
               <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-amber-200 via-white to-slate-200 bg-clip-text text-transparent">NyayaSetu</span>
-              <span class="text-xs font-serif text-amber-400/80 font-medium tracking-wide">न्यायसेतु</span>
+              <span lang="hi" class="text-xs font-serif text-amber-400/80 font-medium tracking-wide">न्यायसेतु</span>
             </div>
             <span class="text-[10px] font-mono tracking-wider block text-slate-400 uppercase">National Judicial Platform</span>
           </div>
@@ -79,7 +80,7 @@
               <span class="text-slate-400 text-[11px]">Assigned Cases, Virtual Hearings, Filings</span>
             </div>
             <div class="p-3.5 rounded-xl border border-white/5 bg-slate-950/60 flex items-center justify-between">
-              <span class="text-emerald-300 font-semibold flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Litigant / Citizen</span>
+              <span class="text-emerald-300 font-semibold flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Litigant</span>
               <span class="text-slate-400 text-[11px]">Case Tracking, Next Hearing Dates, Orders</span>
             </div>
           </div>
@@ -106,15 +107,13 @@
     </div>
 
     <!-- RIGHT PANEL: Authentication Form (Aceternity Split Auth Style) -->
-    <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 md:p-16 relative">
+    <div id="main-content" role="main" class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 md:p-16 relative">
       <div class="max-w-md w-full">
         
         <!-- Mobile Logo -->
         <div class="lg:hidden flex items-center gap-3 mb-8">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 p-0.5 shadow-lg">
-            <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-              <i data-lucide="scale" class="w-5 h-5 text-blue-400"></i>
-            </div>
+          <div class="relative w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-amber-600/45 via-amber-200/20 to-indigo-800/45 shadow-lg shadow-amber-500/10">
+            <img src="/static/img/nyayasetu-emblem.svg?v=constitutional-passage" alt="NyayaSetu Constitutional Passage: an open law book forming a path through a court arch" class="w-full h-full rounded-full">
           </div>
           <div>
             <span class="text-xl font-extrabold tracking-tight text-white">NyayaSetu</span>
@@ -125,52 +124,37 @@
         <!-- Form Card Header -->
         <div class="mb-6">
           <h3 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Portal Authentication</h3>
-          <p class="text-sm text-slate-400 mt-2">Enter credentials or select a quick demonstration role below.</p>
-        </div>
-
-        <!-- One-Click Quick Login Demo Bar -->
-        <div class="mb-6 p-4 rounded-xl border border-blue-500/20 bg-blue-950/20">
-          <div class="text-[11px] font-mono uppercase text-blue-400 font-semibold mb-2.5 flex items-center gap-1.5">
-            <i data-lucide="zap" class="w-3.5 h-3.5 text-blue-400"></i>
-            <span>One-Click Role Demo Sign In</span>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <button onclick="quickFill('admin', 'Password@123', 'Administrator')" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white transition border border-white/5 flex items-center gap-1.5">
-              <i data-lucide="shield" class="w-3.5 h-3.5 text-rose-400"></i>
-              <span>Admin</span>
-            </button>
-            <button onclick="quickFill('clerk1', 'Password@123', 'Court Clerk')" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white transition border border-white/5 flex items-center gap-1.5">
-              <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-indigo-400"></i>
-              <span>Clerk</span>
-            </button>
-            <button onclick="quickFill('judge_sharma', 'Password@123', 'Judge')" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white transition border border-white/5 flex items-center gap-1.5">
-              <i data-lucide="gavel" class="w-3.5 h-3.5 text-amber-400"></i>
-              <span>Judge Sharma</span>
-            </button>
-            <button onclick="quickFill('adv_verma', 'Password@123', 'Lawyer')" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white transition border border-white/5 flex items-center gap-1.5">
-              <i data-lucide="briefcase" class="w-3.5 h-3.5 text-teal-400"></i>
-              <span>Adv. Verma</span>
-            </button>
-            <button onclick="quickFill('rajesh_k', 'Password@123', 'Litigant')" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white transition border border-white/5 flex items-center gap-1.5">
-              <i data-lucide="user" class="w-3.5 h-3.5 text-blue-400"></i>
-              <span>Litigant</span>
-            </button>
-          </div>
+          <p class="text-sm text-slate-400 mt-2">Choose your court role and sign in with your registered credentials.</p>
         </div>
 
         <!-- Error Alert Container -->
-        <div id="auth-error-box" class="hidden mb-4 p-3.5 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-300 text-xs font-medium flex items-center gap-2">
+        <div id="auth-error-box" role="alert" aria-live="assertive" class="hidden mb-4 p-3.5 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-300 text-xs font-medium flex items-center gap-2">
           <i data-lucide="alert-circle" class="w-4 h-4 text-rose-400 shrink-0"></i>
           <span id="auth-error-text">Authentication failed</span>
+        </div>
+
+        <div id="auth-mode-switch" class="mb-4 grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-white/80 p-1.5" role="group" aria-label="Choose sign in or registration">
+          <button id="show-login-button" type="button" onclick="showAuthMode('login')" aria-pressed="true" class="auth-mode-button min-h-11 rounded-lg px-3 py-2 text-sm font-semibold">Sign in</button>
+          <button id="show-register-button" type="button" onclick="showAuthMode('register')" aria-pressed="false" class="auth-mode-button min-h-11 rounded-lg px-3 py-2 text-sm font-semibold">Create litigant account</button>
         </div>
 
         <!-- Form Box -->
         <div class="p-6 sm:p-8 rounded-2xl glass-card border border-white/10 shadow-2xl relative">
           
-          <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
-            
+          <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4" autocomplete="off">
+            <fieldset class="space-y-2">
+              <legend class="mb-2 text-sm font-semibold text-slate-800">Sign in as</legend>
+              <div class="grid grid-cols-2 gap-2 sm:grid-cols-3" role="group" aria-label="Select your role">
+                <button type="button" class="login-role-option" data-role="LITIGANT" aria-pressed="true" onclick="selectLoginRole(this)"><i data-lucide="user-round" aria-hidden="true"></i><span>Litigant</span></button>
+                <button type="button" class="login-role-option" data-role="LAWYER" aria-pressed="false" onclick="selectLoginRole(this)"><i data-lucide="briefcase-business" aria-hidden="true"></i><span>Advocate</span></button>
+                <button type="button" class="login-role-option" data-role="COURT_CLERK" aria-pressed="false" onclick="selectLoginRole(this)"><i data-lucide="files" aria-hidden="true"></i><span>Court clerk</span></button>
+                <button type="button" class="login-role-option" data-role="JUDGE" aria-pressed="false" onclick="selectLoginRole(this)"><i data-lucide="landmark" aria-hidden="true"></i><span>Judge</span></button>
+                <button type="button" class="login-role-option sm:col-span-2" data-role="ADMINISTRATOR" aria-pressed="false" onclick="selectLoginRole(this)"><i data-lucide="shield-check" aria-hidden="true"></i><span>Administrator</span></button>
+              </div>
+              <p class="text-sm leading-relaxed text-slate-600">Choose the role assigned to your account by court administration.</p>
+            </fieldset>
             <div>
-              <label class="block text-xs font-medium text-slate-300 mb-1.5">Username or Registered Email</label>
+              <label for="username" class="block text-sm font-medium text-slate-800 mb-1.5">Username or registered email</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                   <i data-lucide="user" class="w-4 h-4"></i>
@@ -178,6 +162,10 @@
                 <input 
                   type="text" 
                   id="username" 
+                  name="login-identifier"
+                  autocomplete="off"
+                  autocapitalize="none"
+                  spellcheck="false"
                   required 
                   placeholder="e.g. clerk1 or admin@court.gov.in"
                   class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm text-white placeholder-slate-500 outline-none transition"
@@ -187,7 +175,7 @@
 
             <div>
               <div class="flex items-center justify-between mb-1.5">
-                <label class="block text-xs font-medium text-slate-300">Password</label>
+                <label for="password" class="block text-sm font-medium text-slate-800">Password</label>
                 <a href="javascript:void(0)" onclick="handleForgotPassword()" class="text-xs font-mono text-blue-400 hover:text-blue-300 transition">Forgot password?</a>
               </div>
               <div class="relative">
@@ -197,10 +185,15 @@
                 <input 
                   type="password" 
                   id="password" 
+                  name="login-password"
+                  autocomplete="off"
                   required 
                   placeholder="••••••••••••"
-                  class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm text-white placeholder-slate-500 outline-none transition"
+                  class="w-full pl-10 pr-12 py-2.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm text-white placeholder-slate-500 outline-none transition"
                 >
+                <button type="button" class="password-visibility-toggle absolute inset-y-0 right-1 flex min-h-11 min-w-11 items-center justify-center rounded-lg" aria-label="Show password" aria-controls="password" aria-pressed="false" onclick="togglePasswordVisibility('password', this)">
+                  <i data-lucide="eye" class="h-5 w-5" aria-hidden="true"></i>
+                </button>
               </div>
             </div>
 
@@ -215,6 +208,54 @@
               </button>
             </div>
 
+          </form>
+
+          <form id="register-form" onsubmit="handleRegistration(event)" class="hidden space-y-4" autocomplete="on">
+            <div>
+              <h4 class="text-lg font-bold text-slate-900">Create your litigant account</h4>
+              <p class="mt-1 text-sm text-slate-600">Use it to follow your cases and court updates.</p>
+            </div>
+            <div>
+              <label for="register-name" class="mb-1.5 block text-sm font-medium text-slate-800">Full name</label>
+              <input id="register-name" name="name" autocomplete="name" required minlength="2" maxlength="120" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="As shown on your documents">
+            </div>
+            <div>
+              <label for="register-email" class="mb-1.5 block text-sm font-medium text-slate-800">Email address</label>
+              <input id="register-email" name="email" type="email" autocomplete="email" required maxlength="120" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="you@example.in">
+            </div>
+            <div>
+              <label for="register-mobile" class="mb-1.5 block text-sm font-medium text-slate-800">Indian mobile number</label>
+              <input id="register-mobile" name="mobile_no" type="tel" autocomplete="tel" inputmode="tel" required pattern="(\+91[ -]?)?[6-9][0-9]{9}" title="Enter a valid 10-digit Indian mobile number, optionally with +91." class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="9876543210">
+            </div>
+            <div>
+              <label for="register-username" class="mb-1.5 block text-sm font-medium text-slate-800">Choose a username</label>
+              <input id="register-username" name="username" autocomplete="username" required minlength="3" maxlength="60" pattern="[A-Za-z0-9_.-]+" title="Use letters, numbers, dots, underscores, or hyphens." class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="e.g. ananya.shah">
+            </div>
+            <div>
+              <label for="register-address" class="mb-1.5 block text-sm font-medium text-slate-800">Address <span class="font-normal text-slate-500">(optional)</span></label>
+              <input id="register-address" name="address" autocomplete="street-address" maxlength="255" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="City, state">
+            </div>
+            <div>
+              <label for="register-password" class="mb-1.5 block text-sm font-medium text-slate-800">Create password</label>
+              <div class="relative">
+                <input id="register-password" name="new-password" type="password" autocomplete="new-password" required minlength="10" maxlength="72" aria-describedby="password-guidance" class="w-full rounded-xl border border-slate-300 bg-white py-3 pl-4 pr-12 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="At least 10 characters">
+                <button type="button" class="password-visibility-toggle absolute inset-y-1 right-1 flex min-h-11 min-w-11 items-center justify-center rounded-lg" aria-label="Show password" aria-controls="register-password" aria-pressed="false" onclick="togglePasswordVisibility('register-password', this)">
+                  <i data-lucide="eye" class="h-5 w-5" aria-hidden="true"></i>
+                </button>
+              </div>
+              <p id="password-guidance" class="mt-1 text-xs text-slate-600">Use at least 10 characters.</p>
+            </div>
+            <div>
+              <label for="register-password-confirm" class="mb-1.5 block text-sm font-medium text-slate-800">Confirm password</label>
+              <div class="relative">
+                <input id="register-password-confirm" name="confirm-password" type="password" autocomplete="new-password" required minlength="10" maxlength="72" class="w-full rounded-xl border border-slate-300 bg-white py-3 pl-4 pr-12 text-base text-slate-900 placeholder-slate-500 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="Enter the same password again">
+                <button type="button" class="password-visibility-toggle absolute inset-y-1 right-1 flex min-h-11 min-w-11 items-center justify-center rounded-lg" aria-label="Show password" aria-controls="register-password-confirm" aria-pressed="false" onclick="togglePasswordVisibility('register-password-confirm', this)">
+                  <i data-lucide="eye" class="h-5 w-5" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+            <button id="register-submit-btn" type="submit" class="auth-register-submit w-full rounded-xl bg-emerald-900 px-4 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-emerald-800 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-amber-700 disabled:cursor-wait disabled:opacity-70">Create account &amp; continue</button>
+            <p class="text-center text-sm leading-relaxed text-slate-600">Litigant accounts are for case tracking. Court staff, judges, advocates, and administrators are onboarded by court administration.</p>
           </form>
 
         </div>
@@ -235,11 +276,34 @@
   <script src="/static/js/api.js"></script>
   <script>
     lucide.createIcons();
+    let selectedLoginRole = 'LITIGANT';
 
-    function quickFill(user, pw, roleLabel) {
-      document.getElementById('username').value = user;
-      document.getElementById('password').value = pw;
-      showToast(`Selected role: <b>${roleLabel}</b> (${user})`, 'info');
+    function showAuthMode(mode) {
+      const registering = mode === 'register';
+      document.body.classList.toggle('registration-mode', registering);
+      document.getElementById('login-form').classList.toggle('hidden', registering);
+      document.getElementById('register-form').classList.toggle('hidden', !registering);
+      document.getElementById('show-login-button').setAttribute('aria-pressed', String(!registering));
+      document.getElementById('show-register-button').setAttribute('aria-pressed', String(registering));
+      document.getElementById('auth-error-box').classList.add('hidden');
+      if (registering) document.getElementById('register-name').focus();
+    }
+
+    function togglePasswordVisibility(inputId, button) {
+      const input = document.getElementById(inputId);
+      const isVisible = input.type === 'password';
+      input.type = isVisible ? 'text' : 'password';
+      button.setAttribute('aria-label', isVisible ? 'Hide password' : 'Show password');
+      button.setAttribute('aria-pressed', String(isVisible));
+      button.innerHTML = `<i data-lucide="${isVisible ? 'eye-off' : 'eye'}" class="h-5 w-5" aria-hidden="true"></i>`;
+      lucide.createIcons();
+    }
+
+    function selectLoginRole(button) {
+      selectedLoginRole = button.dataset.role;
+      document.querySelectorAll('.login-role-option').forEach(option => {
+        option.setAttribute('aria-pressed', String(option === button));
+      });
     }
 
     async function handleLogin(e) {
@@ -260,7 +324,8 @@
           method: 'POST',
           body: JSON.stringify({
             username_or_email: username,
-            password: password
+            password: password,
+            expected_role: selectedLoginRole
           })
         });
 
@@ -284,6 +349,52 @@
         submitBtn.disabled = false;
         submitBtn.innerHTML = `<span>Authorize & Open Dashboard</span><i data-lucide="arrow-right" class="w-4 h-4"></i>`;
         lucide.createIcons();
+      }
+    }
+
+    async function handleRegistration(e) {
+      e.preventDefault();
+      const errorBox = document.getElementById('auth-error-box');
+      const errorText = document.getElementById('auth-error-text');
+      const submitBtn = document.getElementById('register-submit-btn');
+      const password = document.getElementById('register-password').value;
+      const confirmation = document.getElementById('register-password-confirm').value;
+      errorBox.classList.add('hidden');
+
+      if (password !== confirmation) {
+        errorBox.classList.remove('hidden');
+        errorText.textContent = 'The passwords do not match. Please check and try again.';
+        document.getElementById('register-password-confirm').focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating your account…';
+      try {
+        const res = await api('/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: document.getElementById('register-name').value.trim(),
+            email: document.getElementById('register-email').value.trim(),
+            mobile_no: document.getElementById('register-mobile').value.trim(),
+            username: document.getElementById('register-username').value.trim(),
+            password,
+            address: document.getElementById('register-address').value.trim()
+          })
+        });
+        Auth.setAuth(res.access_token, {
+          user_id: res.user_id,
+          name: res.name,
+          email: res.email,
+          username: res.username,
+          role: res.role
+        });
+        window.location.href = '/dashboard';
+      } catch (err) {
+        errorBox.classList.remove('hidden');
+        errorText.textContent = err.message || 'We could not create your account. Please check your details and try again.';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create account & continue';
       }
     }
 

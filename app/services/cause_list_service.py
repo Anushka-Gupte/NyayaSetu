@@ -40,12 +40,12 @@ class CauseListService:
             entries.append(CauseListEntry(
                 hearing_id=h.hearing_id,
                 case_id=h.case_id,
-                case_number=c.case_number if c else f"Case #{h.case_id}",
-                case_title=c.title if c else "N/A",
-                case_type=c.case_type if c else "General",
-                priority=c.priority if c else "Medium",
+                case_number=c.case_number if c else "Case details unavailable",
+                case_title=c.title if c else "Case details unavailable",
+                case_type=c.case_type if c else "Not recorded",
+                priority=c.priority if c else "Not recorded",
                 hearing_time=AISchedulerService.format_time_obj(h.hearing_time),
-                judge_name=j.name if j else "Unassigned",
+                judge_name=j.name if j else "Not assigned",
                 courtroom_name=cr.courtroom_name if cr else "Unallocated",
                 courtroom_location=cr.location if cr else "",
                 hearing_type=h.hearing_type,
@@ -203,7 +203,7 @@ class CauseListService:
             case_title = h.case.title if h.case else "Court Hearing"
             summary = f"Court Hearing: {case_num} - {case_title}"
 
-            judge_name = h.judge.name if h.judge else "Presiding Judge"
+            judge_name = h.judge.name if h.judge else "Not assigned"
             cr_name = h.courtroom.courtroom_name if h.courtroom else "Courtroom"
             location = f"{cr_name}, {h.courtroom.location if h.courtroom else ''}"
             desc = f"Bench: {judge_name}\\nMode: {h.hearing_type}\\nStatus: {h.hearing_status}"

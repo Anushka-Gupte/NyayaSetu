@@ -41,15 +41,9 @@ pip install -r requirements.txt
 ```powershell
 python init_db.py
 ```
-This sets up SQLite/PostgreSQL schemas and seeds default accounts:
-- **Admin**: `admin` / `admin@court.gov.in` (Password: `Password@123`)
-- **Court Clerk**: `clerk1` / `clerk1@court.gov.in` (Password: `Password@123`)
-- **Judge 1**: `judge_sharma` / `judge.sharma@court.gov.in` (Password: `Password@123`)
-- **Judge 2**: `judge_patel` / `judge.patel@court.gov.in` (Password: `Password@123`)
-- **Lawyer 1**: `adv_verma` / `adv.verma@barcouncil.in` (Password: `Password@123`)
-- **Lawyer 2**: `adv_rao` / `adv.rao@barcouncil.in` (Password: `Password@123`)
-- **Litigant 1**: `rajesh_k` / `rajesh.kumar@gmail.com` (Password: `Password@123`)
-- **Litigant 2**: `sunita_d` / `sunita.deshmukh@gmail.com` (Password: `Password@123`)
+This creates the database schema and, when the database has no administrator, one bootstrap administrator so the system can be configured. It does not add sample users, cases, hearings, notifications, or courtrooms.
+
+Set `BOOTSTRAP_ADMIN_PASSWORD` before initialization to choose a secure administrator password. The default development password is `Password@123`; change it before using the system outside local development. The administrator can create clerk, judge, and advocate accounts and register courtrooms from the dashboard. Litigants can register through the sign-in page.
 
 ### 4. Running Database Migrations
 ```powershell

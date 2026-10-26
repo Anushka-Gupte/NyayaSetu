@@ -129,9 +129,9 @@ class VirtualCourtService:
 
         # Build realistic judicial transcript from proceeding details
         start_t = online_hearing.start_time or datetime.utcnow()
-        case_num = case.case_number if case else "N/A"
-        case_title = case.title if case else "Judicial Proceeding"
-        judge_name = judge.name if judge else "Presiding Judge"
+        case_num = case.case_number if case else "Case details unavailable"
+        case_title = case.title if case else "Case details unavailable"
+        judge_name = judge.name if judge else "Judge details unavailable"
 
         t_0 = start_t.strftime("%H:%M:%S")
         t_1 = (start_t + datetime.resolution * 45).strftime("%H:%M:%S")
@@ -140,7 +140,7 @@ class VirtualCourtService:
         attendees = db.query(HearingAttendance).filter(
             HearingAttendance.online_hearing_id == online_hearing.online_hearing_id
         ).all()
-        roster_str = ", ".join([f"{a.user_name} ({a.role})" for a in attendees]) if attendees else "Bench and Parties present online."
+        roster_str = ", ".join([f"{a.user_name} ({a.role})" for a in attendees]) if attendees else "Attendance details unavailable."
 
         transcript_body = (
             f"=== OFFICIAL JUDICIAL HEARING PROCEEDING TRANSCRIPT ===\n"

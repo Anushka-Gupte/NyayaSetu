@@ -22,6 +22,7 @@ from app.schemas.case import (
 )
 
 from app.schemas.hearing import (
+    CourtroomCreate,
     CourtroomResponse,
     HearingSlotRecommendation,
     HearingRecommendationRequest,
@@ -86,6 +87,7 @@ __all__ = [
     "DuplicateCheckResponse",
     "LawyerAssignment",
     "CourtroomResponse",
+    "CourtroomCreate",
     "HearingSlotRecommendation",
     "HearingRecommendationRequest",
     "HearingRecommendationResponse",

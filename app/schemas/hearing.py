@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import date, time, datetime
 
@@ -7,6 +7,16 @@ class CourtroomBase(BaseModel):
     location: str
     capacity: int = 50
     availability: bool = True
+
+class CourtroomCreate(BaseModel):
+    courtroom_name: str = Field(min_length=3, max_length=100)
+    location: str = Field(min_length=2, max_length=150)
+    capacity: int = Field(default=50, ge=1, le=2000)
+
+    @field_validator("courtroom_name", "location", mode="before")
+    @classmethod
+    def trim_courtroom_text(cls, value):
+        return value.strip() if isinstance(value, str) else value
 
 class CourtroomResponse(CourtroomBase):
     courtroom_id: int

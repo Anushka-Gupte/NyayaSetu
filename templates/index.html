@@ -25,10 +25,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/aceternity.css">
+  <link rel="stylesheet" href="/static/css/aceternity.css?v=20261025-ui-details">
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen relative selection:bg-indigo-500/30 selection:text-indigo-200">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
 
   <!-- Ambient Top Glowing Light -->
   <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[550px] radial-glow-blue pointer-events-none -z-10"></div>
@@ -39,13 +40,13 @@
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
       <!-- Indian Judicial Emblem & Branding -->
       <a href="/" class="flex items-center gap-3.5 group">
-        <div class="relative w-11 h-11 rounded-full p-0.5 bg-gradient-to-tr from-amber-500/40 via-amber-400/20 to-blue-500/40 shadow-lg shadow-amber-500/10 transition group-hover:scale-105">
-          <img src="/static/img/nyayasetu-emblem.svg" alt="NyayaSetu Emblem" class="w-full h-full rounded-full">
+        <div class="relative w-11 h-11 rounded-full p-0.5 bg-gradient-to-tr from-amber-600/45 via-amber-200/20 to-indigo-800/45 shadow-lg shadow-amber-500/10 transition group-hover:scale-105">
+          <img src="/static/img/nyayasetu-emblem.svg?v=constitutional-passage" alt="NyayaSetu Constitutional Passage: an open law book forming a path through a court arch" class="w-full h-full rounded-full">
         </div>
         <div class="flex flex-col">
           <div class="flex items-center gap-2">
             <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-amber-200 via-white to-slate-200 bg-clip-text text-transparent">NyayaSetu</span>
-            <span class="text-xs font-serif text-amber-400/80 font-medium tracking-wide">न्यायसेतु</span>
+            <span lang="hi" class="text-xs font-serif text-amber-400/80 font-medium tracking-wide">न्यायसेतु</span>
           </div>
           <span class="text-[10px] font-mono tracking-wider text-slate-400 uppercase">National Judicial Platform</span>
         </div>
@@ -68,15 +69,14 @@
   </header>
 
   <!-- Hero Section with Shadows & Scales (Aceternity UI Style) -->
-  <section class="relative pt-20 pb-28 overflow-hidden bg-grid-pattern">
+  <section id="main-content" class="relative pt-20 pb-28 overflow-hidden bg-grid-pattern">
     <div class="max-w-6xl mx-auto px-6 text-center">
-      
+
       <!-- Top Pill Badge -->
       <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-500/30 shimmer-badge text-xs font-semibold text-blue-300 mb-8 shadow-sm">
         <span class="flex h-2 w-2 rounded-full bg-blue-400 animate-pulse"></span>
         <span>Court Case Scheduling & Hearing Management Platform</span>
-        <span class="text-slate-500">•</span>
-        <span class="font-mono text-[11px] text-slate-400">v1.0 Production Platform</span>
+
       </div>
 
       <!-- Main Heading -->
@@ -88,7 +88,7 @@
 
       <!-- Subtitle -->
       <p class="mt-6 text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed font-light">
-        Digitizing the judicial case lifecycle with constraint satisfaction optimization, 
+        Digitizing the judicial case lifecycle with constraint satisfaction optimization,
         cryptographic evidence verification, automated cause list publishing, and real-time AI transcription.
       </p>
 
@@ -98,16 +98,16 @@
           <span>Enter Judicial Portal</span>
           <i data-lucide="arrow-right" class="w-4 h-4"></i>
         </a>
-        <a href="/dashboard" class="px-7 py-3.5 rounded-xl border border-white/10 bg-slate-900/60 hover:bg-slate-800/60 text-slate-200 font-semibold text-base backdrop-blur-md transition flex items-center gap-2.5">
+        <a href="#features" class="px-7 py-3.5 rounded-xl border border-white/10 bg-slate-900/60 hover:bg-slate-800/60 text-slate-200 font-semibold text-base backdrop-blur-md transition flex items-center gap-2.5">
           <i data-lucide="layout-dashboard" class="w-4 h-4 text-blue-400"></i>
-          <span>Live Demo Dashboards</span>
+          <span>Explore the platform</span>
         </a>
       </div>
 
       <!-- Hero Scaled 3D Preview (Aceternity Signature) -->
       <div class="perspective-container mt-16 max-w-5xl mx-auto">
         <div class="hero-scaled-card rounded-2xl border border-white/10 bg-slate-900/90 overflow-hidden text-left p-6 md:p-8 relative">
-          
+
           <!-- Mock Header Window -->
           <div class="flex items-center justify-between pb-6 border-b border-white/10">
             <div class="flex items-center gap-3">
@@ -116,36 +116,36 @@
                 <div class="w-3 h-3 rounded-full bg-amber-500/80"></div>
                 <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
               </div>
-              <span class="font-mono text-xs text-slate-400">nyayasetu.gov.in/courtrooms/live-board</span>
+              <span class="font-mono text-xs text-slate-400">NyayaSetu · Court operations</span>
             </div>
             <div class="flex items-center gap-3">
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                LIVE WEBSOCKET STREAM
+                ROLE-BASED WORKSPACE
               </span>
             </div>
           </div>
 
           <!-- Mock Dashboard Visual Grid inside Scaled Card -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-            
-            <!-- Card 1: Now Hearing -->
+
+            <!-- Case records are shown only after authorised users register them. -->
             <div class="p-5 rounded-xl bg-slate-950/70 border border-white/5 flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between mb-3">
-                  <span class="text-xs font-mono text-blue-400 uppercase tracking-wider">Courtroom 1 • Chief Bench</span>
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">IN SESSION</span>
+                  <span class="text-xs font-mono text-blue-400 uppercase tracking-wider">Case records</span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-800 border border-blue-500/20">ROLE-RESTRICTED</span>
                 </div>
-                <h4 class="font-bold text-white text-base">CC/2026/00001</h4>
-                <p class="text-xs text-slate-400 mt-1 line-clamp-1">State of Maharashtra vs R. K. Enterprises</p>
+                <h4 class="font-bold text-white text-base">Case lifecycle</h4>
+                <p class="text-xs text-slate-400 mt-1">Case details appear after authorised court staff register a case.</p>
                 <div class="mt-4 pt-3 border-t border-white/5 text-xs text-slate-300 flex items-center gap-2">
-                  <i data-lucide="user-check" class="w-3.5 h-3.5 text-blue-400"></i>
-                  <span>Hon. Justice R. Sharma</span>
+                  <i data-lucide="folder-check" class="w-3.5 h-3.5 text-blue-400"></i>
+                  <span>Records are linked to real accounts</span>
                 </div>
               </div>
               <div class="mt-4 text-[11px] font-mono text-slate-400 flex justify-between">
-                <span>Time: 11:30 AM</span>
-                <span class="text-emerald-400">Online Proceeding</span>
+                <span>Case number</span>
+                <span class="text-emerald-400">Assigned by system</span>
               </div>
             </div>
 
@@ -155,18 +155,18 @@
               <div>
                 <div class="flex items-center justify-between mb-3">
                   <span class="text-xs font-mono text-indigo-400 uppercase tracking-wider">AI Scheduler Engine</span>
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">98% OPTIMAL</span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-800 border border-blue-500/20">ON REQUEST</span>
                 </div>
                 <h4 class="font-semibold text-white text-sm">Constraint Satisfaction:</h4>
                 <ul class="text-xs text-slate-400 mt-2 space-y-1.5 font-light">
-                  <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Criminal Law Specialist Matched</li>
-                  <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Judge Caseload: 2 Hearings (Balanced)</li>
-                  <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Zero Conflict Verified in 0.033s</li>
+                  <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Uses registered judge availability</li>
+                  <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Checks courtroom schedules</li>
+                  <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Flags scheduling conflicts</li>
                 </ul>
               </div>
               <div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs">
-                <span class="text-slate-400 font-mono">Slot: Tomorrow 10:30</span>
-                <span class="text-blue-400 font-medium">Ready to Confirm</span>
+                <span class="text-slate-400 font-mono">Registered case required</span>
+                <span class="text-blue-400 font-medium">Review before scheduling</span>
               </div>
             </div>
 
@@ -175,43 +175,19 @@
               <div>
                 <div class="flex items-center justify-between mb-3">
                   <span class="text-xs font-mono text-teal-400 uppercase tracking-wider">Evidence & Transcription</span>
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30">SHA-256</span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-500/10 text-teal-800 border border-teal-500/20">SECURE RECORDS</span>
                 </div>
-                <div class="font-mono text-[11px] text-slate-400 bg-slate-900 p-2 rounded border border-white/5 truncate">
-                  3eca83607cc72e1a... Verified
-                </div>
-                <div class="mt-3 text-xs text-slate-300 space-y-1">
-                  <p class="text-[11px] text-slate-400">Live AI Transcript:</p>
-                  <p class="italic text-slate-300 line-clamp-2">"[11:31:02] [Adv. Verma]: May it please Your Honor, I represent petitioner..."</p>
-                </div>
+                <p class="mt-3 text-xs leading-relaxed text-slate-300">Evidence files and hearing transcripts appear here only after they are added to a case.</p>
               </div>
               <div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs text-slate-400">
-                <span>Auto-Version: v2</span>
-                <span class="text-indigo-400">PDF Ready</span>
+                <span>Case-linked access</span>
+                <span class="text-indigo-400">Permission checked</span>
               </div>
             </div>
 
           </div>
 
-          <!-- Bottom Metric Bar -->
-          <div class="mt-6 pt-5 border-t border-white/5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-            <div>
-              <div class="text-xl font-extrabold text-white">0.033s</div>
-              <div class="text-[11px] font-mono text-slate-400 uppercase">AI Recommendation</div>
-            </div>
-            <div>
-              <div class="text-xl font-extrabold text-emerald-400">100%</div>
-              <div class="text-[11px] font-mono text-slate-400 uppercase">Conflict Avoidance</div>
-            </div>
-            <div>
-              <div class="text-xl font-extrabold text-white">60+</div>
-              <div class="text-[11px] font-mono text-slate-400 uppercase">REST Endpoints</div>
-            </div>
-            <div>
-              <div class="text-xl font-extrabold text-blue-400">5 Roles</div>
-              <div class="text-[11px] font-mono text-slate-400 uppercase">Joined RBAC</div>
-            </div>
-          </div>
+          <p class="mt-6 border-t border-white/5 pt-5 text-center text-sm leading-relaxed text-slate-400">Each authorised workspace reflects records entered into NyayaSetu. No sample case details are shown here.</p>
 
         </div>
       </div>
@@ -220,11 +196,11 @@
   </section>
 
   <!-- Bento Feature Section -->
-  <section id="features" class="py-24 border-t border-white/5 relative">
+  <section id="features" class="civic-jaali-divider py-24 border-t border-white/5 relative">
     <div class="max-w-6xl mx-auto px-6">
-      
+
       <div class="text-center max-w-2xl mx-auto mb-16">
-        <h2 class="text-xs font-mono uppercase tracking-widest text-blue-400 font-semibold">Autonomous Core Modules</h2>
+        <h2 class="text-xs font-mono uppercase tracking-widest text-blue-400 font-semibold"><span lang="hi">सुविधाएँ</span> · FEATURES</h2>
         <h3 class="text-3xl sm:text-4xl font-bold text-white mt-3">Engineered for Judicial Precision</h3>
         <p class="text-slate-400 mt-4 text-sm sm:text-base">Every feature conforms directly to the approved Software Requirements Specification (SRS) and UML system architecture.</p>
       </div>
@@ -265,7 +241,7 @@
             <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6">
               <i data-lucide="calendar-days" class="w-6 h-6"></i>
             </div>
-            <h4 class="text-xl font-bold text-white">Daily Cause List & iCal Sync</h4>
+            <h4 class="text-xl font-bold text-white">Check the cause list & iCal Sync</h4>
             <p class="text-sm text-slate-400 mt-2 leading-relaxed">
               Automatic daily cause list compilation sorted by courtroom, bench, and timing. One-click landscape PDF export and RFC 5545 iCalendar feeds for Google Calendar and Microsoft Outlook.
             </p>
@@ -321,93 +297,93 @@
   </section>
 
   <!-- Section 2: Judicial Workflow (End-to-End Lifecycle) -->
-  <section id="workflow" class="py-24 border-t border-white/5 relative bg-slate-950/80">
+  <section id="workflow" class="civic-jaali-divider py-24 border-t border-white/5 relative">
     <div class="max-w-6xl mx-auto px-6">
-      
+
       <div class="text-center max-w-2xl mx-auto mb-16">
-        <h2 class="text-xs font-mono uppercase tracking-widest text-amber-400 font-semibold">Operational Excellence</h2>
-        <h3 class="text-3xl sm:text-4xl font-bold text-white mt-3">End-to-End Judicial Lifecycle</h3>
+        <h2 class="journey-kicker text-xs font-mono uppercase tracking-widest text-amber-400 font-semibold"><svg class="ashoka-ring" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="19"/><circle cx="24" cy="24" r="2"/><path d="M24 5v17M24 26v17M5 24h17M26 24h17M10.6 10.6l12 12M25.4 25.4l12 12M37.4 10.6l-12 12M22.6 25.4l-12 12"/></svg><span lang="hi">न्याय की राह</span> · NYAYA KI RAAH</h2>
+        <h3 class="text-3xl sm:text-4xl font-bold text-white mt-3">Your case, step by step</h3>
         <p class="text-slate-400 mt-4 text-sm sm:text-base">
-          From initial digital e-filing to final certified transcription, every case progression step is automated, auditable, and mathematically optimized.
+          Follow the journey from filing to hearing. Each step explains what happens next in clear, everyday language.
         </p>
       </div>
 
       <!-- 4-Stage Progressive Workflow Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+      <div id="civic-journey-grid" class="grid grid-cols-1 md:grid-cols-4 gap-6 relative" role="list" aria-label="Four steps in a court case journey">
 
         <!-- Stage 1 -->
-        <div class="p-6 rounded-2xl glass-card flex flex-col justify-between border-t-2 border-t-blue-500/80">
+        <div class="journey-step p-6 rounded-2xl glass-card flex flex-col justify-between border-t-2 border-t-blue-500/80" role="listitem">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <span class="font-mono text-xs font-bold text-blue-400">STAGE 01</span>
+              <span class="font-mono text-xs font-bold text-blue-400">STEP 1</span>
               <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
                 <i data-lucide="folder-plus" class="w-4 h-4"></i>
               </div>
             </div>
-            <h4 class="text-base font-bold text-white mb-2">Digital Case Filing</h4>
+            <h4 class="text-base font-bold text-white mb-2">File your case online</h4>
             <p class="text-xs text-slate-400 leading-relaxed">
-              Automated Case ID allocation (<code class="text-blue-300 font-mono">CC/YYYY/SEQ</code>), duplicate case matching, and SHA-256 evidence vault upload.
+              Submit case details and documents. The court assigns a case number and checks for duplicate filings.
             </p>
           </div>
           <div class="mt-6 pt-3 border-t border-white/5 text-[11px] font-mono text-slate-500">
-            Intake & Verification
+            Case received
           </div>
         </div>
 
         <!-- Stage 2 -->
-        <div class="p-6 rounded-2xl glass-card flex flex-col justify-between border-t-2 border-t-amber-500/80">
+        <div class="journey-step p-6 rounded-2xl glass-card flex flex-col justify-between border-t-2 border-t-amber-500/80" role="listitem">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <span class="font-mono text-xs font-bold text-amber-400">STAGE 02</span>
+              <span class="font-mono text-xs font-bold text-amber-400">STEP 2</span>
               <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
                 <i data-lucide="sparkles" class="w-4 h-4"></i>
               </div>
             </div>
-            <h4 class="text-base font-bold text-white mb-2">AI Constraint Scheduling</h4>
+            <h4 class="text-base font-bold text-white mb-2">Get a hearing date</h4>
             <p class="text-xs text-slate-400 leading-relaxed">
-              Multi-resource constraint engine matches judge domain specialization, courtroom capacity, and party availability in sub-second timeframes.
+              Court staff find an available judge, courtroom, and time for the hearing.
             </p>
           </div>
           <div class="mt-6 pt-3 border-t border-white/5 text-[11px] font-mono text-slate-500">
-            Zero-Conflict Allocation
+            Hearing scheduled
           </div>
         </div>
 
         <!-- Stage 3 -->
-        <div class="p-6 rounded-2xl glass-card flex flex-col justify-between border-t-2 border-t-indigo-500/80">
+        <div class="journey-step p-6 rounded-2xl glass-card flex flex-col justify-between border-t-2 border-t-indigo-500/80" role="listitem">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <span class="font-mono text-xs font-bold text-indigo-400">STAGE 03</span>
+              <span class="font-mono text-xs font-bold text-indigo-400">STEP 3</span>
               <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
                 <i data-lucide="landmark" class="w-4 h-4"></i>
               </div>
             </div>
-            <h4 class="text-base font-bold text-white mb-2">Daily Cause List</h4>
+            <h4 class="text-base font-bold text-white mb-2">Check the cause list</h4>
             <p class="text-xs text-slate-400 leading-relaxed">
-              Automated daily cause list publication, courtroom timetable sorting, landscape PDF generation, and bidirectional iCalendar calendar sync.
+              See which cases are being heard, where to go, and when. Download or sync the daily list.
             </p>
           </div>
           <div class="mt-6 pt-3 border-t border-white/5 text-[11px] font-mono text-slate-500">
-            Public Notice & Sync
+            Hearing information
           </div>
         </div>
 
         <!-- Stage 4 -->
-        <div class="p-6 rounded-2xl glass-card flex flex-col justify-between border-t-2 border-t-emerald-500/80">
+        <div class="journey-step p-6 rounded-2xl glass-card flex flex-col justify-between border-t-2 border-t-emerald-500/80" role="listitem">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <span class="font-mono text-xs font-bold text-emerald-400">STAGE 04</span>
+              <span class="font-mono text-xs font-bold text-emerald-400">STEP 4</span>
               <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
                 <i data-lucide="video" class="w-4 h-4"></i>
               </div>
             </div>
-            <h4 class="text-base font-bold text-white mb-2">Virtual Trial & Transcripts</h4>
+            <h4 class="text-base font-bold text-white mb-2">Attend and follow up</h4>
             <p class="text-xs text-slate-400 leading-relaxed">
-              Role-authenticated WebRTC sessions, live attendance logs, speaker-diarized AI transcription, and real-time public display boards.
+              Join a virtual hearing when available, then check the transcript, case updates, and next steps.
             </p>
           </div>
           <div class="mt-6 pt-3 border-t border-white/5 text-[11px] font-mono text-slate-500">
-            Certified Record
+            Hearing and next steps
           </div>
         </div>
 
@@ -417,11 +393,11 @@
   </section>
 
   <!-- Section 3: Stakeholder Portals (Role Architecture) -->
-  <section id="roles" class="py-24 border-t border-white/5 relative">
+  <section id="roles" class="civic-jaali-divider py-24 border-t border-white/5 relative">
     <div class="max-w-6xl mx-auto px-6">
 
       <div class="text-center max-w-2xl mx-auto mb-16">
-        <h2 class="text-xs font-mono uppercase tracking-widest text-indigo-400 font-semibold">Role-Based Access Control</h2>
+        <h2 class="text-xs font-mono uppercase tracking-widest text-indigo-400 font-semibold"><span lang="hi">आपके लिए</span> · FOR YOU</h2>
         <h3 class="text-3xl sm:text-4xl font-bold text-white mt-3">Tailored Stakeholder Portals</h3>
         <p class="text-slate-400 mt-4 text-sm sm:text-base">
           Five specialized workspaces engineered around the operational requirements of each judicial participant.
@@ -506,11 +482,11 @@
   </section>
 
   <!-- Section 4: Security & Compliance Standards -->
-  <section id="security" class="py-24 border-t border-white/5 relative bg-slate-950/60">
+  <section id="security" class="civic-jaali-divider py-24 border-t border-white/5 relative bg-slate-950/60">
     <div class="max-w-6xl mx-auto px-6">
 
       <div class="text-center max-w-2xl mx-auto mb-16">
-        <h2 class="text-xs font-mono uppercase tracking-widest text-emerald-400 font-semibold">Judicial Rigor & Integrity</h2>
+        <h2 class="text-xs font-mono uppercase tracking-widest text-emerald-400 font-semibold"><span lang="hi">सुरक्षा</span> · SECURITY</h2>
         <h3 class="text-3xl sm:text-4xl font-bold text-white mt-3">Security & Compliance Architecture</h3>
         <p class="text-slate-400 mt-4 text-sm sm:text-base">
           Engineered to satisfy stringent legal evidentiary requirements and high-concurrency non-functional specifications.
@@ -555,7 +531,7 @@
   </section>
 
   <!-- CTA Section -->
-  <section class="py-20 border-t border-white/5 bg-gradient-to-b from-slate-950 to-slate-900/60 text-center relative">
+  <section id="civic-cta" class="civic-jaali-divider py-20 border-t border-white/5 text-center relative">
     <div class="max-w-4xl mx-auto px-6">
       <h3 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Experience Modern Judicial Management</h3>
       <p class="text-slate-400 mt-4 text-base max-w-xl mx-auto">

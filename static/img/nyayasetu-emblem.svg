@@ -1,64 +1,18 @@
-<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Outer Concentric Dharma Chakra Ring with 24 Markers -->
-  <circle cx="50" cy="50" r="47" stroke="url(#goldGradient)" stroke-width="1.2" stroke-dasharray="2 3.5" opacity="0.7"/>
-  <circle cx="50" cy="50" r="43" stroke="url(#goldGradient)" stroke-width="1.5" opacity="0.9"/>
-  <circle cx="50" cy="50" r="40" fill="url(#emblemBackdrop)"/>
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="logo-title logo-description">
+  <title id="logo-title">NyayaSetu Constitutional Passage</title>
+  <desc id="logo-description">An open law book becomes a path through a court arch, inspired by the Constitution of India and access to justice.</desc>
+  <circle cx="50" cy="50" r="47" fill="#FBFAF7" stroke="#E5E1D8" stroke-width="2"/>
 
-  <!-- Ashoka Chakra Spokes in Center -->
-  <circle cx="50" cy="50" r="14" stroke="url(#goldGradient)" stroke-width="0.8" opacity="0.35"/>
-  <g stroke="url(#goldGradient)" stroke-width="0.6" opacity="0.3">
-    <line x1="50" y1="37" x2="50" y2="63"/>
-    <line x1="37" y1="50" x2="63" y2="50"/>
-    <line x1="41" y1="41" x2="59" y2="59"/>
-    <line x1="41" y1="59" x2="59" y2="41"/>
-    <line x1="45" y1="38" x2="55" y2="62"/>
-    <line x1="38" y1="45" x2="62" y2="55"/>
-    <line x1="45" y1="62" x2="55" y2="38"/>
-    <line x1="38" y1="55" x2="62" y2="45"/>
-  </g>
-  <circle cx="50" cy="50" r="3.2" fill="url(#goldGradient)"/>
+  <!-- Court arch rises from the open pages of the Constitution. -->
+  <path d="M29 68V43C29 31.4 38.4 22 50 22C61.6 22 71 31.4 71 43V68" stroke="#34345E" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M38 67V44C38 37.4 43.4 32 50 32C56.6 32 62 37.4 62 44V67" stroke="#B88943" stroke-width="2" stroke-linecap="round"/>
 
-  <!-- Central Judicial Pillar / Danda (Emblem of Sovereign Law) -->
-  <path d="M49 19 H51 V76 H49 Z" fill="url(#goldGradient)"/>
-  <!-- Lion Capital / Trishula Lotus Finial Inspiration at Top -->
-  <path d="M50 11 L53 16 L50 19 L47 16 Z" fill="url(#goldGradient)"/>
-  <circle cx="50" cy="11" r="1.5" fill="#FDE68A"/>
-  <!-- Ashoka Chakra Pedestal Base at Plinth -->
-  <path d="M43 76 H57 V79 H43 Z" fill="url(#goldGradient)"/>
-  <path d="M39 79 H61 V82 H39 Z" fill="url(#goldGradient)"/>
+  <!-- A quiet path leads from the book through the arch. -->
+  <circle cx="50" cy="43" r="2.8" fill="#B88943"/>
+  <path d="M50 49V72" stroke="#B88943" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="2 4"/>
 
-  <!-- Balance Beam (Nyaya Tula) -->
-  <path d="M21 27 C28 25 72 25 79 27 L78 29.5 C72 27.5 28 27.5 22 29.5 Z" fill="url(#goldGradient)"/>
-  <!-- Center Jewel Fulcrum -->
-  <circle cx="50" cy="27" r="3.5" fill="url(#goldGradient)"/>
-  <circle cx="50" cy="27" r="1.8" fill="#0b1120"/>
-
-  <!-- Left Pan Suspension Chains -->
-  <line x1="23" y1="28" x2="15" y2="47" stroke="url(#goldGradient)" stroke-width="0.8" opacity="0.85"/>
-  <line x1="23" y1="28" x2="23" y2="47" stroke="url(#goldGradient)" stroke-width="0.8" opacity="0.85"/>
-  <line x1="23" y1="28" x2="31" y2="47" stroke="url(#goldGradient)" stroke-width="0.8" opacity="0.85"/>
-  <!-- Left Pan (Nyaya Patra) -->
-  <path d="M13 47 C15 56 31 56 33 47 Z" fill="url(#goldGradient)" opacity="0.95"/>
-  <line x1="13" y1="47" x2="33" y2="47" stroke="url(#goldGradient)" stroke-width="1.2"/>
-
-  <!-- Right Pan Suspension Chains -->
-  <line x1="77" y1="28" x2="69" y2="47" stroke="url(#goldGradient)" stroke-width="0.8" opacity="0.85"/>
-  <line x1="77" y1="28" x2="77" y2="47" stroke="url(#goldGradient)" stroke-width="0.8" opacity="0.85"/>
-  <line x1="77" y1="28" x2="85" y2="47" stroke="url(#goldGradient)" stroke-width="0.8" opacity="0.85"/>
-  <!-- Right Pan (Nyaya Patra) -->
-  <path d="M67 47 C69 56 85 56 87 47 Z" fill="url(#goldGradient)" opacity="0.95"/>
-  <line x1="67" y1="47" x2="87" y2="47" stroke="url(#goldGradient)" stroke-width="1.2"/>
-
-  <defs>
-    <linearGradient id="goldGradient" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#FDE68A"/>
-      <stop offset="35%" stop-color="#F59E0B"/>
-      <stop offset="70%" stop-color="#D97706"/>
-      <stop offset="100%" stop-color="#92400E"/>
-    </linearGradient>
-    <radialGradient id="emblemBackdrop" cx="50" cy="50" r="40" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#0f172a"/>
-      <stop offset="85%" stop-color="#020617"/>
-    </radialGradient>
-  </defs>
+  <!-- Open pages form the bridge and the book's central fold. -->
+  <path d="M50 69C38 62 23 61 13 67V87C26 82 38 83 50 90C62 83 74 82 87 87V67C77 61 62 62 50 69Z" fill="#FFFEFA" stroke="#34345E" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M50 70V89M19 72C29 68 39 70 46 74M19 80C29 77 39 78 46 82M81 72C71 68 61 70 54 74M81 80C71 77 61 78 54 82" stroke="#817E91" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M14 66C27 60 40 63 50 69C60 63 73 60 86 66" stroke="#B88943" stroke-width="2.5" stroke-linecap="round"/>
 </svg>

@@ -29,7 +29,7 @@ def build_live_info(h: Hearing) -> LiveHearingInfo:
         case_id=h.case_id,
         case_number=c.case_number if c else f"Case #{h.case_id}",
         case_title=c.title if c else "Matter",
-        judge_name=j.name if j else "Presiding Judge",
+        judge_name=j.name if j else "Not assigned",
         hearing_time=AISchedulerService.format_time_obj(h.hearing_time),
         hearing_status=h.hearing_status,
         hearing_type=h.hearing_type

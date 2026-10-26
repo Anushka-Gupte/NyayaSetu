@@ -79,19 +79,22 @@ def get_dashboard_overview(
         }
 
     elif role == UserRole.JUDGE:
-        assigned_cases_count = db.query(Hearing).filter(Hearing.judge_id == current_user.user_id).distinct(Hearing.case_id).count()
+        assigned_case_ids = [row[0] for row in db.query(Hearing.case_id).filter(Hearing.judge_id == current_user.user_id).distinct().all()]
         today_hearings = db.query(Hearing).filter(
             Hearing.judge_id == current_user.user_id,
             Hearing.hearing_date == today
         ).all()
         pending_judgments = db.query(CourtCase).filter(
+            CourtCase.case_id.in_(assigned_case_ids) if assigned_case_ids else False,
             CourtCase.case_status == "Pending"
         ).count()
+        judge_record = db.query(Judge).filter(Judge.judge_id == current_user.user_id).first()
 
         base_response["metrics"] = {
-            "assigned_cases_count": assigned_cases_count,
+            "assigned_cases_count": len(assigned_case_ids),
             "today_hearings_count": len(today_hearings),
             "pending_judgments": pending_judgments,
+            "judge_availability": judge_record.availability if judge_record else None,
             "today_schedule": [
                 {
                     "hearing_id": h.hearing_id,
@@ -109,6 +112,11 @@ def get_dashboard_overview(
             CaseLawyerAssociation.lawyer_id == current_user.user_id
         ).all()
         case_ids = [a.case_id for a in assigned_cases]
+        assigned_documents = db.query(CaseDocument).filter(CaseDocument.case_id.in_(case_ids)).count() if case_ids else 0
+        active_assigned_cases = db.query(CourtCase).filter(
+            CourtCase.case_id.in_(case_ids),
+            CourtCase.case_status == "Active"
+        ).count() if case_ids else 0
         
         upcoming_hearings = db.query(Hearing).filter(
             Hearing.case_id.in_(case_ids) if case_ids else False,
@@ -118,6 +126,8 @@ def get_dashboard_overview(
         base_response["metrics"] = {
             "total_assigned_cases": len(assigned_cases),
             "upcoming_hearings_count": len(upcoming_hearings),
+            "active_assigned_cases_count": active_assigned_cases,
+            "assigned_case_documents_count": assigned_documents,
             "upcoming_hearings": [
                 {
                     "hearing_id": h.hearing_id,
@@ -136,14 +146,21 @@ def get_dashboard_overview(
             CourtCase.litigant_id == current_user.user_id
         ).all()
         case_ids = [c.case_id for c in litigant_cases]
-
         upcoming_hearings = db.query(Hearing).filter(
             Hearing.case_id.in_(case_ids) if case_ids else False,
-            Hearing.hearing_date >= today
+            Hearing.hearing_date >= today,
+            Hearing.hearing_status.notin_(["Cancelled", "Completed", "Postponed"])
         ).order_by(Hearing.hearing_date.asc()).limit(3).all()
+        case_documents_count = db.query(CaseDocument).filter(CaseDocument.case_id.in_(case_ids)).count() if case_ids else 0
+        assigned_advocates_count = db.query(CaseLawyerAssociation).filter(
+            CaseLawyerAssociation.case_id.in_(case_ids)
+        ).count() if case_ids else 0
 
         base_response["metrics"] = {
             "my_cases_count": len(litigant_cases),
+            "upcoming_hearings_count": len(upcoming_hearings),
+            "my_case_documents_count": case_documents_count,
+            "assigned_advocates_count": assigned_advocates_count,
             "my_cases": [
                 {
                     "case_id": c.case_id,
