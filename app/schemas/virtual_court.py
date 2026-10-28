@@ -35,6 +35,7 @@ class OnlineHearingResponse(BaseModel):
     case_title: str
     meeting_link: str
     meeting_passcode: Optional[str] = None
+    meeting_provider: str = "jitsi"
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     is_recorded: bool
@@ -52,4 +53,4 @@ class JoinHearingResponse(BaseModel):
     room_name: str
     participant_name: str
     role: str
-    jwt_room_token: str
+    meeting_provider: str = "jitsi"

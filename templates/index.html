@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/aceternity.css?v=20261025-ui-details">
+  <link rel="stylesheet" href="/static/css/aceternity.css?v=20261027-landing-journey">
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen relative selection:bg-indigo-500/30 selection:text-indigo-200">
@@ -104,93 +104,49 @@
         </a>
       </div>
 
-      <!-- Hero Scaled 3D Preview (Aceternity Signature) -->
-      <div class="perspective-container mt-16 max-w-5xl mx-auto">
-        <div class="hero-scaled-card rounded-2xl border border-white/10 bg-slate-900/90 overflow-hidden text-left p-6 md:p-8 relative">
-
-          <!-- Mock Header Window -->
-          <div class="flex items-center justify-between pb-6 border-b border-white/10">
-            <div class="flex items-center gap-3">
-              <div class="flex gap-1.5">
-                <div class="w-3 h-3 rounded-full bg-rose-500/80"></div>
-                <div class="w-3 h-3 rounded-full bg-amber-500/80"></div>
-                <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
-              </div>
-              <span class="font-mono text-xs text-slate-400">NyayaSetu · Court operations</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                ROLE-BASED WORKSPACE
-              </span>
-            </div>
+      <!-- A clear, editorial case journey instead of a fabricated dashboard preview. -->
+      <section class="landing-journey mt-16 max-w-6xl mx-auto text-left" aria-labelledby="landing-journey-title">
+        <img class="landing-journey-art" src="/static/img/judicial-passage.svg" alt="" aria-hidden="true">
+        <div class="landing-journey-heading">
+          <div>
+            <p class="landing-journey-kicker"><span lang="hi">न्याय की राह</span><span aria-hidden="true">·</span> THE CASE JOURNEY</p>
+            <h2 id="landing-journey-title">One connected path through the courts</h2>
+            <p>From filing to hearing, each step stays clear, coordinated and linked to the case record.</p>
           </div>
-
-          <!-- Mock Dashboard Visual Grid inside Scaled Card -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-
-            <!-- Case records are shown only after authorised users register them. -->
-            <div class="p-5 rounded-xl bg-slate-950/70 border border-white/5 flex flex-col justify-between">
-              <div>
-                <div class="flex items-center justify-between mb-3">
-                  <span class="text-xs font-mono text-blue-400 uppercase tracking-wider">Case records</span>
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-800 border border-blue-500/20">ROLE-RESTRICTED</span>
-                </div>
-                <h4 class="font-bold text-white text-base">Case lifecycle</h4>
-                <p class="text-xs text-slate-400 mt-1">Case details appear after authorised court staff register a case.</p>
-                <div class="mt-4 pt-3 border-t border-white/5 text-xs text-slate-300 flex items-center gap-2">
-                  <i data-lucide="folder-check" class="w-3.5 h-3.5 text-blue-400"></i>
-                  <span>Records are linked to real accounts</span>
-                </div>
-              </div>
-              <div class="mt-4 text-[11px] font-mono text-slate-400 flex justify-between">
-                <span>Case number</span>
-                <span class="text-emerald-400">Assigned by system</span>
-              </div>
-            </div>
-
-            <!-- Card 2: AI Scheduling Recommendation -->
-            <div class="p-5 rounded-xl bg-slate-950/70 border border-blue-500/20 shadow-inner flex flex-col justify-between relative overflow-hidden">
-              <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-blue-600/10 rounded-full blur-xl pointer-events-none"></div>
-              <div>
-                <div class="flex items-center justify-between mb-3">
-                  <span class="text-xs font-mono text-indigo-400 uppercase tracking-wider">AI Scheduler Engine</span>
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-800 border border-blue-500/20">ON REQUEST</span>
-                </div>
-                <h4 class="font-semibold text-white text-sm">Constraint Satisfaction:</h4>
-                <ul class="text-xs text-slate-400 mt-2 space-y-1.5 font-light">
-                  <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Uses registered judge availability</li>
-                  <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Checks courtroom schedules</li>
-                  <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Flags scheduling conflicts</li>
-                </ul>
-              </div>
-              <div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs">
-                <span class="text-slate-400 font-mono">Registered case required</span>
-                <span class="text-blue-400 font-medium">Review before scheduling</span>
-              </div>
-            </div>
-
-            <!-- Card 3: Cryptographic Evidence & Transcript -->
-            <div class="p-5 rounded-xl bg-slate-950/70 border border-white/5 flex flex-col justify-between">
-              <div>
-                <div class="flex items-center justify-between mb-3">
-                  <span class="text-xs font-mono text-teal-400 uppercase tracking-wider">Evidence & Transcription</span>
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-500/10 text-teal-800 border border-teal-500/20">SECURE RECORDS</span>
-                </div>
-                <p class="mt-3 text-xs leading-relaxed text-slate-300">Evidence files and hearing transcripts appear here only after they are added to a case.</p>
-              </div>
-              <div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs text-slate-400">
-                <span>Case-linked access</span>
-                <span class="text-indigo-400">Permission checked</span>
-              </div>
-            </div>
-
-          </div>
-
-          <p class="mt-6 border-t border-white/5 pt-5 text-center text-sm leading-relaxed text-slate-400">Each authorised workspace reflects records entered into NyayaSetu. No sample case details are shown here.</p>
-
+          <a href="#workflow" class="landing-journey-link">See how it works <i data-lucide="arrow-down-right" aria-hidden="true"></i></a>
         </div>
-      </div>
+
+        <ol class="landing-journey-steps">
+          <li class="landing-journey-step">
+            <span class="landing-journey-number" aria-hidden="true">01</span>
+            <div class="landing-journey-icon"><i data-lucide="folder-plus" aria-hidden="true"></i></div>
+            <p lang="hi" class="landing-journey-hindi">दाख़िला</p>
+            <h3>File a case</h3>
+            <p class="landing-journey-copy">Court staff register the matter and its essential details.</p>
+          </li>
+          <li class="landing-journey-step">
+            <span class="landing-journey-number" aria-hidden="true">02</span>
+            <div class="landing-journey-icon"><i data-lucide="calendar-days" aria-hidden="true"></i></div>
+            <p lang="hi" class="landing-journey-hindi">समय निर्धारण</p>
+            <h3>Plan a hearing</h3>
+            <p class="landing-journey-copy">Scheduling considers judge and courtroom availability.</p>
+          </li>
+          <li class="landing-journey-step">
+            <span class="landing-journey-number" aria-hidden="true">03</span>
+            <div class="landing-journey-icon"><i data-lucide="landmark" aria-hidden="true"></i></div>
+            <p lang="hi" class="landing-journey-hindi">सुनवाई</p>
+            <h3>Conduct a hearing</h3>
+            <p class="landing-journey-copy">Participants can follow in-person and virtual proceedings.</p>
+          </li>
+          <li class="landing-journey-step">
+            <span class="landing-journey-number" aria-hidden="true">04</span>
+            <div class="landing-journey-icon"><i data-lucide="files" aria-hidden="true"></i></div>
+            <p lang="hi" class="landing-journey-hindi">अभिलेख</p>
+            <h3>Keep the record</h3>
+            <p class="landing-journey-copy">Documents, evidence and transcripts stay with the matter.</p>
+          </li>
+        </ol>
+      </section>
 
     </div>
   </section>

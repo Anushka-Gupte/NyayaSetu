@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.core.database import get_db
 from app.core.security import get_password_hash
-from app.models.user import User, UserRole, Administrator, CourtClerk, Judge, Lawyer, Litigant
+from app.models.user import User, UserRole, CourtClerk, Judge, Lawyer
 from app.schemas.auth import UserCreate, UserProfileResponse, UserUpdateStatus
 from app.api.deps import require_roles, get_current_active_user
 from app.services.audit_service import AuditService
@@ -24,6 +24,11 @@ def create_user(
     """
     Administrator onboards a new judicial user and assigns role (FR-4.1.3 Authentication.Role.Assign).
     """
+    if user_in.role not in {UserRole.COURT_CLERK, UserRole.JUDGE, UserRole.LAWYER}:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Administrators can create court clerk, judge, and advocate accounts only."
+        )
     client_ip = request.client.host if (request and request.client) else None
 
     # Check for existing email or username
@@ -44,17 +49,7 @@ def create_user(
     hashed_pw = get_password_hash(user_in.password)
 
     # Instantiate concrete role subclass
-    if user_in.role == UserRole.ADMINISTRATOR:
-        user = Administrator(
-            name=user_in.name,
-            email=user_in.email,
-            mobile_no=user_in.mobile_no,
-            username=user_in.username,
-            password=hashed_pw,
-            role=UserRole.ADMINISTRATOR,
-            admin_role=user_in.admin_role or "ADMIN"
-        )
-    elif user_in.role == UserRole.COURT_CLERK:
+    if user_in.role == UserRole.COURT_CLERK:
         if not user_in.employee_id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="employee_id is required for Court Clerk")
         user = CourtClerk(
@@ -88,16 +83,6 @@ def create_user(
             password=hashed_pw,
             role=UserRole.LAWYER,
             bar_registration_no=user_in.bar_registration_no
-        )
-    elif user_in.role == UserRole.LITIGANT:
-        user = Litigant(
-            name=user_in.name,
-            email=user_in.email,
-            mobile_no=user_in.mobile_no,
-            username=user_in.username,
-            password=hashed_pw,
-            role=UserRole.LITIGANT,
-            address=user_in.address or "Address not provided"
         )
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported user role")
@@ -163,6 +148,25 @@ def update_user_status(
     user = db.query(User).filter(User.user_id == user_id).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    if user.user_id == current_admin.user_id and not status_update.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="You cannot deactivate the administrator account you are currently using."
+        )
+    if user.role == UserRole.ADMINISTRATOR and user.is_active and not status_update.is_active:
+        active_admin_count = db.query(User).filter(
+            User.role == UserRole.ADMINISTRATOR,
+            User.is_active.is_(True)
+        ).count()
+        if active_admin_count <= 1:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="At least one active administrator account must remain."
+            )
+
+    if user.is_active == status_update.is_active:
+        return build_user_profile(user)
 
     user.is_active = status_update.is_active
     db.commit()

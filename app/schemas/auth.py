@@ -52,7 +52,14 @@ class PasswordResetRequest(BaseModel):
 
 class PasswordResetConfirm(BaseModel):
     token: str
-    new_password: str
+    new_password: str = Field(min_length=10, max_length=72)
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_password_bytes(cls, value):
+        if len(value.encode("utf-8")) > 72:
+            raise ValueError("Password must be 72 bytes or fewer.")
+        return value
 
 class UserBase(BaseModel):
     name: str = Field(min_length=2, max_length=120)
@@ -74,6 +81,14 @@ class UserCreate(UserBase):
     @classmethod
     def trim_user_text(cls, value):
         return value.strip() if isinstance(value, str) else value
+
+    @field_validator("employee_id", "specialization", "bar_registration_no", "address", mode="before")
+    @classmethod
+    def trim_role_details(cls, value):
+        if isinstance(value, str):
+            normalized = value.strip()
+            return normalized or None
+        return value
 
     @field_validator("mobile_no")
     @classmethod

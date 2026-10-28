@@ -155,6 +155,24 @@ class AISchedulerService:
                 if len(recommendations) >= max_recommendations:
                     break
 
+                # 0. Check if assigned advocate(s) are already booked in another hearing at this slot
+                lawyer_assocs = db.query(CaseLawyerAssociation).filter(CaseLawyerAssociation.case_id == case_id).all()
+                lawyer_ids = [la.lawyer_id for la in lawyer_assocs]
+                if lawyer_ids:
+                    slot_parsed_time = AISchedulerService.parse_time_str(slot_time_str)
+                    conflicting_lawyer = db.query(Hearing).join(
+                        CaseLawyerAssociation, Hearing.case_id == CaseLawyerAssociation.case_id
+                    ).filter(
+                        CaseLawyerAssociation.lawyer_id.in_(lawyer_ids),
+                        Hearing.hearing_date == candidate_date,
+                        Hearing.hearing_time == slot_parsed_time,
+                        Hearing.case_id != case_id,
+                        Hearing.hearing_status.in_(["Scheduled", "In Progress"])
+                    ).first()
+                    if conflicting_lawyer:
+                        # Skip this time slot entirely because the advocate has a hearing elsewhere
+                        continue
+
                 # Score each (judge, courtroom) pair for this slot
                 for judge in judges:
                     # Check judge conflicts
@@ -166,8 +184,8 @@ class AISchedulerService:
                         hearing_date=candidate_date,
                         hearing_time_str=slot_time_str
                     )
-                    # If judge has conflict, skip
-                    if any("Honorable Judge" in c for c in j_conflicts):
+                    # If judge or advocate has conflict, skip
+                    if any("Honorable Judge" in c or "Assigned advocate" in c for c in j_conflicts):
                         continue
 
                     # Count judge's total hearings on this day (workload balancing)
@@ -202,8 +220,8 @@ class AISchedulerService:
                     reasons = ["Conflict-free judicial slot verified"]
 
                     # Specialization match bonus
-                    case_type_lower = case.case_type.lower()
-                    judge_spec_lower = judge.specialization.lower()
+                    case_type_lower = (case.case_type or "").lower()
+                    judge_spec_lower = (judge.specialization or "").lower()
                     if ("criminal" in case_type_lower and "criminal" in judge_spec_lower) or \
                        ("civil" in case_type_lower and "civil" in judge_spec_lower) or \
                        ("commercial" in case_type_lower and "commercial" in judge_spec_lower):

@@ -9,19 +9,34 @@ from app.core.database import get_db
 from app.models.user import User, UserRole
 from app.models.cause_list import CauseList
 from app.models.hearing import Hearing
-from app.models.case import CourtCase
+from app.models.case import CourtCase, CaseLawyerAssociation
 from app.schemas.cause_list import (
     CauseListGenerateRequest,
     CauseListResponse,
     CauseListEntry,
     CalendarEventResponse
 )
-from app.api.deps import get_current_active_user, require_roles
+from app.api.deps import get_current_active_user, get_current_user_optional, require_roles
 from app.services.cause_list_service import CauseListService
 from app.services.audit_service import AuditService
 from app.services.ai_scheduler_service import AISchedulerService
 
 router = APIRouter()
+
+
+def scope_calendar_query(query, current_user: User):
+    """Limit calendar feeds to the authenticated user's assigned matters."""
+    if current_user.role == UserRole.JUDGE:
+        return query.filter(Hearing.judge_id == current_user.user_id)
+    if current_user.role == UserRole.LITIGANT:
+        return query.join(CourtCase, Hearing.case_id == CourtCase.case_id).filter(
+            CourtCase.litigant_id == current_user.user_id
+        )
+    if current_user.role == UserRole.LAWYER:
+        return query.join(CaseLawyerAssociation, Hearing.case_id == CaseLawyerAssociation.case_id).filter(
+            CaseLawyerAssociation.lawyer_id == current_user.user_id
+        )
+    return query
 
 def build_cause_list_response(cl: CauseList, entries: List[CauseListEntry]) -> CauseListResponse:
     pdf_url = f"/api/v1/cause-lists/{cl.cause_list_id}/pdf" if cl.pdf_path else None
@@ -208,18 +223,20 @@ def download_cause_list_pdf(
     cause_list_id: int,
     request: Request = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """
     Downloads printable Daily Cause List in PDF format (FR-4.4.3 CauseList.Download).
+    Published cause lists are accessible publicly and by authenticated users.
     """
     client_ip = request.client.host if (request and request.client) else None
     cl = db.query(CauseList).filter(CauseList.cause_list_id == cause_list_id).first()
     if not cl:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cause list not found")
 
-    if not cl.is_published and current_user.role == UserRole.LITIGANT:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Draft cause list is not available for download")
+    if not cl.is_published:
+        if not current_user or current_user.role == UserRole.LITIGANT:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Draft cause list is not available for download")
 
     if not cl.pdf_path or not os.path.exists(cl.pdf_path):
         # Generate on demand
@@ -227,13 +244,15 @@ def download_cause_list_pdf(
         cl.pdf_path = CauseListService.generate_pdf(cl.cause_list_id, cl.date, cl.court_name, entries)
         db.commit()
 
+    user_id = current_user.user_id if current_user else None
+    username = current_user.username if current_user else "Public Citizen"
     AuditService.log(
         db=db,
         action="CAUSE_LIST_DOWNLOADED",
         entity_type="CauseList",
         entity_id=str(cl.cause_list_id),
-        user_id=current_user.user_id,
-        details=f"Cause List PDF #{cl.cause_list_id} downloaded by {current_user.username}",
+        user_id=user_id,
+        details=f"Cause List PDF #{cl.cause_list_id} downloaded by {username}",
         ip_address=client_ip
     )
 
@@ -272,13 +291,7 @@ def get_calendar_events(
     if courtroom_id:
         query = query.filter(Hearing.courtroom_id == courtroom_id)
 
-    # Scoping for Judge / Litigant
-    if current_user.role == UserRole.JUDGE:
-        query = query.filter(Hearing.judge_id == current_user.user_id)
-    elif current_user.role == UserRole.LITIGANT:
-        query = query.join(CourtCase, Hearing.case_id == CourtCase.case_id).filter(
-            CourtCase.litigant_id == current_user.user_id
-        )
+    query = scope_calendar_query(query, current_user)
 
     hearings = query.order_by(Hearing.hearing_date.asc(), Hearing.hearing_time.asc()).all()
 
@@ -310,6 +323,8 @@ def get_calendar_events(
 
 @router.get("/calendar/export.ics", summary="Export iCalendar (.ics) Feed for Google / Outlook Sync")
 def export_ical_feed(
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     judge_id: Optional[int] = None,
     courtroom_id: Optional[int] = None,
     db: Session = Depends(get_db),
@@ -319,16 +334,24 @@ def export_ical_feed(
     Exports calendar sync feed in RFC 5545 iCalendar standard format for Google Calendar, Outlook, and Apple Calendar (FR-4.4.3 Calendar.Sync).
     """
     query = db.query(Hearing).filter(Hearing.hearing_status != "Cancelled")
+    if date_from:
+        query = query.filter(Hearing.hearing_date >= date_from)
+    if date_to:
+        query = query.filter(Hearing.hearing_date <= date_to)
     if judge_id:
         query = query.filter(Hearing.judge_id == judge_id)
     if courtroom_id:
         query = query.filter(Hearing.courtroom_id == courtroom_id)
+    query = scope_calendar_query(query, current_user)
 
-    hearings = query.all()
+    hearings = query.order_by(Hearing.hearing_date.asc(), Hearing.hearing_time.asc()).all()
     ics_text = CauseListService.generate_ics_feed(hearings, court_name="NyayaSetu Judicial Court")
 
     return Response(
         content=ics_text,
         media_type="text/calendar",
-        headers={"Content-Disposition": "attachment; filename=nyayasetu_court_calendar.ics"}
+        headers={
+            "Content-Disposition": "attachment; filename=nyayasetu_court_calendar.ics",
+            "Cache-Control": "private, no-store"
+        }
     )

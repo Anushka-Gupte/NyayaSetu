@@ -106,14 +106,14 @@ All protected endpoints require the HTTP Header:
 
 | Method | Endpoint | Description | Role Access |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/virtual-court/sessions` | Generates secure virtual hearing session link and passcode. | Clerk, Admin |
+| `POST` | `/virtual-court/sessions` | Creates a provider-backed hearing session (Google Meet restricted space when configured; otherwise Jitsi link). | Clerk, Admin |
 | `POST` | `/virtual-court/sessions/{id}/join` | Role-gated join access; rejects unauthorized parties (403); logs arrival. | Authorized Roles |
 | `POST` | `/virtual-court/sessions/{id}/leave` | Records departure timestamp in attendance tracking log. | Authenticated |
 | `POST` | `/virtual-court/sessions/{id}/start` | Judge commences online proceeding; updates hearing to `In Progress`. | Judge, Clerk, Admin |
-| `POST` | `/virtual-court/sessions/{id}/recording` | Toggles official audio/video proceeding recording. | Judge, Admin |
-| `POST` | `/virtual-court/sessions/{id}/end` | Concludes proceeding and triggers automated AI verbatim transcription. | Judge, Clerk, Admin |
+| `POST` | `/virtual-court/sessions/{id}/recording` | Returns 501 until recording capture is integrated with the selected provider. | Judge, Admin |
+| `POST` | `/virtual-court/sessions/{id}/end` | Concludes proceeding and saves session metadata/optional bench notes; speech-to-text is not configured. | Judge, Clerk, Admin |
 | `GET` | `/virtual-court/sessions/{id}/attendees` | Retrieves proceeding attendance roster. | Authenticated |
-| `GET` | `/virtual-court/sessions/{id}/transcript` | Retrieves AI verbatim proceeding transcript. | Authenticated |
+| `GET` | `/virtual-court/sessions/{id}/transcript` | Retrieves the hearing session record and any bench notes. | Assigned Participants |
 | `GET` | `/virtual-court/sessions/{id}/transcript/pdf` | Downloads authenticated proceeding transcript PDF. | Authenticated |
 
 ---

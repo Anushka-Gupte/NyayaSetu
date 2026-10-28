@@ -258,12 +258,18 @@
               </select>
             </div>
             <div>
-              <label for="case-litigant-input" class="block text-slate-400 mb-1">Registered litigant</label>
+              <label for="case-litigant-input" class="block text-slate-400 mb-1">Principal Party / Litigant</label>
               <select id="case-litigant-input" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500">
                 <option value="">Loading registered litigants…</option>
               </select>
             </div>
-            <div class="md:col-span-3">
+            <div>
+              <label for="case-lawyer-input" class="block text-slate-400 mb-1">Assigned Advocate / Counsel</label>
+              <select id="case-lawyer-input" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500">
+                <option value="">None (Party in Person / Self-Represented)</option>
+              </select>
+            </div>
+            <div class="md:col-span-2">
               <label for="case-desc-input" class="block text-slate-400 mb-1">Description / prayer summary</label>
               <input type="text" id="case-desc-input" placeholder="Brief factual dispute statement..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500">
             </div>
@@ -350,9 +356,9 @@
               <i data-lucide="file-down" class="w-3.5 h-3.5"></i>
               <span>Download PDF</span>
             </button>
-            <button onclick="exportIcalSync()" class="px-4 py-2 rounded-xl border border-white/10 bg-slate-900 hover:bg-slate-800 text-slate-300 font-medium text-xs transition flex items-center gap-1.5" title="Export .ics file for Google Calendar and Outlook">
+            <button onclick="exportIcalSync()" class="px-4 py-2 rounded-xl border border-white/10 bg-slate-900 hover:bg-slate-800 text-slate-300 font-medium text-xs transition flex items-center gap-1.5" title="Download an iCalendar file to import into a calendar app">
               <i data-lucide="calendar-plus" class="w-3.5 h-3.5 text-blue-400"></i>
-              <span>Sync (.ics)</span>
+              <span>Export calendar (.ics)</span>
             </button>
           </div>
         </div>
@@ -368,9 +374,9 @@
           <div>
             <h3 class="text-lg font-bold text-white flex items-center gap-2">
               <i data-lucide="video" class="w-5 h-5 text-indigo-400"></i>
-              <span>Virtual Courtroom Proceedings & AI Transcription</span>
+              <span>Virtual Courtroom and Hearing Record</span>
             </h3>
-            <p class="text-xs text-slate-400 mt-1">End-to-end encrypted virtual hearings with automated attendance tracking and verbatim speech-to-text.</p>
+            <p class="text-xs text-slate-400 mt-1">Join the configured video conference from this workspace. NyayaSetu checks participant access and records attendance.</p>
           </div>
           <div class="flex items-center gap-3">
             <select id="virtual-hearing-select" class="text-xs font-mono bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none">
@@ -394,24 +400,21 @@
                 <span id="vc-room-title" class="text-xs font-mono font-bold text-white uppercase">Virtual Bench Room</span>
               </div>
               <div class="flex items-center gap-2">
-                <button onclick="toggleVcRecording()" id="vc-rec-btn" class="px-3 py-1 rounded-lg text-xs font-mono font-bold bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition flex items-center gap-1.5 border border-white/5">
-                  <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                  <span>Record Hearing</span>
-                </button>
                 <button onclick="concludeHearingSession()" id="vc-end-btn" class="px-3 py-1 rounded-lg text-xs font-bold bg-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white border border-rose-500/30 transition">
                   Conclude Proceeding
                 </button>
               </div>
             </div>
 
-            <!-- Simulated / Embedded WebRTC Frame -->
+            <!-- Configured video conference provider -->
             <div id="vc-screen-viewport" class="flex-1 my-6 rounded-xl bg-slate-950/80 border border-white/5 flex flex-col items-center justify-center p-8 text-center relative">
               <div class="w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4 animate-pulse">
                 <i data-lucide="shield-alert" class="w-8 h-8"></i>
               </div>
               <h4 id="vc-viewport-header" class="text-base font-bold text-white">Court Session Ready</h4>
-              <p id="vc-viewport-sub" class="text-xs text-slate-400 max-w-md mt-1">Select a hearing above and click "Join Session" to enter the secure judicial proceeding.</p>
+              <p id="vc-viewport-sub" class="text-xs text-slate-400 max-w-md mt-1">Select a hearing above and click "Join Session" to open its video conference.</p>
               <div id="vc-live-link-box" class="mt-4 hidden font-mono text-[11px] text-blue-400 bg-blue-950/30 px-3 py-1.5 rounded-lg border border-blue-500/20"></div>
+              <iframe id="vc-meeting-frame" class="hidden absolute inset-0 h-full w-full rounded-xl bg-black" title="Virtual court conference" allow="camera; microphone; autoplay; fullscreen; display-capture" allowfullscreen referrerpolicy="no-referrer"></iframe>
             </div>
 
             <!-- Active Attendees Strip -->
@@ -420,7 +423,7 @@
                 <i data-lucide="users" class="w-4 h-4 text-blue-400"></i>
                 <span id="vc-attendees-counter">Attendees Present: 0</span>
               </span>
-              <span class="font-mono text-[11px] text-slate-500">AES-256 TLS Stream</span>
+              <button id="vc-leave-btn" type="button" onclick="leaveVirtualHearing()" class="hidden rounded-lg border border-white/10 px-3 py-1 font-mono text-[11px] text-slate-300 hover:bg-white/5">Leave conference</button>
             </div>
           </div>
 
@@ -430,7 +433,7 @@
               <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
                 <div class="flex items-center gap-2">
                   <i data-lucide="file-text" class="w-4 h-4 text-indigo-400"></i>
-                  <span class="text-xs font-bold text-white uppercase tracking-wider">AI Speech-to-Text</span>
+                  <span class="text-xs font-bold text-white uppercase tracking-wider">Hearing Transcript</span>
                 </div>
                 <button onclick="downloadTranscriptPdf()" id="vc-transcript-dl-btn" class="text-xs font-mono text-indigo-400 hover:text-indigo-300 transition flex items-center gap-1">
                   <span>PDF</span>
@@ -440,13 +443,13 @@
 
               <!-- Transcript Text Feed -->
               <div id="vc-transcript-feed" class="h-[360px] overflow-y-auto space-y-3 font-mono text-xs text-slate-300 pr-2 leading-relaxed">
-                <p class="text-slate-500 italic text-[11px]">No active hearing session selected.</p>
+                <p class="text-slate-500 italic text-[11px]">Transcript generation is not connected to live conference audio yet.</p>
               </div>
             </div>
 
             <div class="pt-3 border-t border-white/10 text-[10px] font-mono text-slate-400 flex justify-between">
-              <span>Whisper STT Model</span>
-              <span class="text-emerald-400">Speaker Diarization Active</span>
+              <span>Transcript service</span>
+              <span class="text-amber-400">Not connected</span>
             </div>
           </div>
 
@@ -514,9 +517,24 @@
             <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 id="managed-staff-title" class="text-lg font-bold text-slate-900">Court accounts</h3>
-                <p class="mt-1 text-sm text-slate-600">Recently registered staff accounts.</p>
+                <p class="mt-1 text-sm text-slate-600">Search accounts, check access status, or reactivate an account.</p>
               </div>
               <button type="button" onclick="loadManagedStaffAccounts()" class="min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-amber-700">Refresh</button>
+            </div>
+            <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+              <div>
+                <label for="staff-account-search" class="mb-1.5 block text-sm font-semibold text-slate-800">Search accounts</label>
+                <input id="staff-account-search" type="search" oninput="filterManagedStaffAccounts()" class="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20" placeholder="Name, username, or email">
+              </div>
+              <div>
+                <label for="staff-account-role-filter" class="mb-1.5 block text-sm font-semibold text-slate-800">Account type</label>
+                <select id="staff-account-role-filter" onchange="filterManagedStaffAccounts()" class="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 focus:border-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-800/20">
+                  <option value="">All staff</option>
+                  <option value="COURT_CLERK">Court clerks</option>
+                  <option value="JUDGE">Judges</option>
+                  <option value="LAWYER">Advocates</option>
+                </select>
+              </div>
             </div>
             <div id="managed-staff-list" class="space-y-3" aria-live="polite"><p class="text-sm text-slate-600">Loading accounts…</p></div>
           </section>
@@ -590,7 +608,8 @@
 
   </div>
 
+  <script>window.NYAYASETU_IDLE_TIMEOUT_MINUTES = {{ idle_timeout_minutes | int }};</script>
   <script src="/static/js/api.js"></script>
-  <script src="/static/js/dashboard.js?v=20261026-real-records-1"></script>
+  <script src="/static/js/dashboard.js?v=20261027-clerk-filing-roles-1"></script>
 </body>
 </html>

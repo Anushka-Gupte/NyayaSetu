@@ -52,6 +52,8 @@ class OnlineHearing(Base):
     hearing_id: Mapped[int] = mapped_column(Integer, ForeignKey("hearings.hearing_id"), unique=True, nullable=False)
     meeting_link: Mapped[str] = mapped_column(String(255), nullable=False)
     meeting_passcode: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    meeting_provider: Mapped[str] = mapped_column(String(30), default="jitsi", nullable=False)
+    provider_space_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     start_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     end_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     is_recorded: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

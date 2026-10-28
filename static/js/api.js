@@ -16,13 +16,60 @@ const Auth = {
   setAuth: (token, user) => {
     localStorage.setItem('nyayasetu_token', token);
     localStorage.setItem('nyayasetu_user', JSON.stringify(user));
+    resetIdleLogoutTimer();
   },
   clearAuth: () => {
     localStorage.removeItem('nyayasetu_token');
     localStorage.removeItem('nyayasetu_user');
+    clearTimeout(idleLogoutTimer);
   },
   isAuthenticated: () => !!localStorage.getItem('nyayasetu_token')
 };
+
+let idleLogoutTimer = null;
+let lastIdleActivityAt = 0;
+
+function resetIdleLogoutTimer() {
+  clearTimeout(idleLogoutTimer);
+  if (!Auth.isAuthenticated()) return;
+  const timeoutMinutes = Number(window.NYAYASETU_IDLE_TIMEOUT_MINUTES) || 30;
+  idleLogoutTimer = window.setTimeout(logOutForInactivity, timeoutMinutes * 60 * 1000);
+}
+
+async function logOutForInactivity() {
+  const token = Auth.getToken();
+  try {
+    if (token) {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    }
+  } finally {
+    Auth.clearAuth();
+    if (window.location.pathname !== '/auth' && window.location.pathname !== '/') {
+      window.location.href = '/auth';
+    }
+  }
+}
+
+function recordUserActivity() {
+  if (!Auth.isAuthenticated()) return;
+  const now = Date.now();
+  if (now - lastIdleActivityAt < 10000) return;
+  lastIdleActivityAt = now;
+  resetIdleLogoutTimer();
+}
+
+['pointerdown', 'keydown', 'scroll', 'touchstart', 'mousemove'].forEach(eventName => {
+  document.addEventListener(eventName, recordUserActivity, { passive: true });
+});
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', resetIdleLogoutTimer, { once: true });
+} else {
+  resetIdleLogoutTimer();
+}
 
 async function api(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;

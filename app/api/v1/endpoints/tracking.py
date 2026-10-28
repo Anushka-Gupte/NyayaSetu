@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.user import User, UserRole
 from app.models.hearing import Hearing, Courtroom
-from app.models.case import CourtCase, CaseHistory
+from app.models.case import CourtCase, CaseHistory, CaseLawyerAssociation
 from app.schemas.tracking import (
     HearingPostponeRequest,
     LiveHearingInfo,
@@ -225,9 +225,21 @@ def get_case_timeline(
     if not case:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
 
-    # Scoping for Litigant
-    if current_user.role == UserRole.LITIGANT and case.litigant_id != current_user.user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+    has_access = current_user.role in {UserRole.ADMINISTRATOR, UserRole.COURT_CLERK}
+    if current_user.role == UserRole.LITIGANT:
+        has_access = case.litigant_id == current_user.user_id
+    elif current_user.role == UserRole.LAWYER:
+        has_access = db.query(CaseLawyerAssociation.id).filter(
+            CaseLawyerAssociation.case_id == case.case_id,
+            CaseLawyerAssociation.lawyer_id == current_user.user_id
+        ).first() is not None
+    elif current_user.role == UserRole.JUDGE:
+        has_access = db.query(Hearing.hearing_id).filter(
+            Hearing.case_id == case.case_id,
+            Hearing.judge_id == current_user.user_id
+        ).first() is not None
+    if not has_access:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied to this case timeline")
 
     history_records = sorted(case.history, key=lambda x: x.date_time, reverse=True)
 

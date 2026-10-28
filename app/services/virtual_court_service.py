@@ -25,7 +25,7 @@ class VirtualCourtService:
         Generates secure virtual hearing room parameters (FR-4.6.3 VirtualHearing.Link.Generate).
         """
         clean_num = case_number.replace("/", "_").replace("-", "_")
-        room_token = secrets.token_hex(4)
+        room_token = secrets.token_urlsafe(24)
         room_name = f"NyayaSetu_{clean_num}_{room_token}"
         meeting_link = f"{settings.VIRTUAL_COURT_BASE_URL}/{room_name}"
         passcode = secrets.token_hex(3).upper() # 6-char alphanumeric passcode
@@ -114,27 +114,21 @@ class VirtualCourtService:
         return record
 
     @staticmethod
-    def generate_ai_transcript(
+    def generate_session_record(
         db: Session,
         online_hearing: OnlineHearing,
         notes: Optional[str] = None
     ) -> Transcript:
-        """
-        AI-enabled judicial hearing transcription engine (FR-4.6.3 VirtualHearing.Transcript.Generate).
-        Produces speaker-tagged, chronological verbatim transcript records.
-        """
+        """Store a clearly labeled hearing record until a speech service is configured."""
         hearing = online_hearing.hearing
         case = hearing.case if hearing else None
         judge = hearing.judge if hearing else None
 
-        # Build realistic judicial transcript from proceeding details
+        # Do not fabricate spoken dialogue when no audio transcription service is configured.
         start_t = online_hearing.start_time or datetime.utcnow()
         case_num = case.case_number if case else "Case details unavailable"
         case_title = case.title if case else "Case details unavailable"
         judge_name = judge.name if judge else "Judge details unavailable"
-
-        t_0 = start_t.strftime("%H:%M:%S")
-        t_1 = (start_t + datetime.resolution * 45).strftime("%H:%M:%S")
 
         # Compile attendees list
         attendees = db.query(HearingAttendance).filter(
@@ -143,25 +137,19 @@ class VirtualCourtService:
         roster_str = ", ".join([f"{a.user_name} ({a.role})" for a in attendees]) if attendees else "Attendance details unavailable."
 
         transcript_body = (
-            f"=== OFFICIAL JUDICIAL HEARING PROCEEDING TRANSCRIPT ===\n"
+            f"=== HEARING SESSION RECORD ===\n"
+            f"TRANSCRIPTION STATUS: Unavailable. No speech-to-text provider is configured.\n"
             f"CASE NUMBER: {case_num}\n"
             f"TITLE: {case_title}\n"
             f"BENCH: {judge_name}\n"
-            f"DATE OF PROCEEDING: {start_t.strftime('%Y-%m-%d')}\n"
-            f"SESSION COMMENCED: {t_0} UTC\n"
+            f"DATE OF PROCEEDING: {start_t.strftime('%Y-%m-%d')} UTC\n"
+            f"SESSION COMMENCED: {start_t.strftime('%H:%M:%S')} UTC\n"
             f"RECORDED PARTICIPANTS: {roster_str}\n"
-            f"========================================================\n\n"
-            f"[{t_0}] [COURT OFFICER]: All rise. Virtual Courtroom of {judge_name} is now officially in session for matter {case_num}.\n\n"
-            f"[{t_0}] [{judge_name}]: Please enter your appearance for the record.\n\n"
-            f"[{t_0}] [COUNSEL FOR PETITIONER]: Good morning, Your Honor. Appearing on behalf of the petitioner. We have submitted digital documentary evidence into the repository as per directions.\n\n"
-            f"[{t_0}] [{judge_name}]: The digital record has been verified by the Registry. Counsel, summarize your arguments on interim prayers.\n\n"
-            f"[{t_0}] [COUNSEL FOR PETITIONER]: As detailed in our registered petition, immediate interim protection is necessitated to maintain status quo.\n\n"
-            f"[{t_0}] [{judge_name}]: Heard both sides. Matter stands adjourned with interim directions as recorded in the order sheet. The Registry will notify all stakeholders.\n\n"
-            f"[{t_0}] [COURT OFFICER]: Proceedings concluded. Session terminated.\n"
+            f"========================================================\n"
         )
 
         if notes:
-            transcript_body += f"\n[ADDITIONAL BENCH OBSERVATIONS]: {notes}\n"
+            transcript_body += f"\nBENCH NOTES (not a verbatim transcript):\n{notes}\n"
 
         existing_transcript = db.query(Transcript).filter(
             Transcript.online_hearing_id == online_hearing.online_hearing_id
@@ -224,7 +212,7 @@ class VirtualCourtService:
 
         story = []
         story.append(Paragraph("<b>DEPARTMENT OF JUSTICE - COURT RECORD OF PROCEEDINGS</b>", title_style))
-        story.append(Paragraph("AUTHENTICATED AI-GENERATED HEARING TRANSCRIPT", title_style))
+        story.append(Paragraph("HEARING SESSION RECORD", title_style))
         story.append(Spacer(1, 15))
 
         # Format transcript lines

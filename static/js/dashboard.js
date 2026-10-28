@@ -5,6 +5,7 @@
 let currentUser = null;
 let currentHearingSession = null;
 let searchTimeout = null;
+let managedStaffAccounts = [];
 
 function formatCourtDateTime(value, includeDate = true) {
   const timestamp = typeof value === 'string' && !/(Z|[+-]\d{2}:\d{2})$/i.test(value) ? value + 'Z' : value;
@@ -66,6 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (currentUser.role === 'LITIGANT') {
     await loadCasesTable();
     await loadCauseList();
+    await loadVirtualHearingDropdown();
     await loadNotifications();
   } else {
     await loadLiveBoards();
@@ -76,8 +78,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadNotifications();
     await loadAuditLogs();
   }
-  if (currentUser.role === 'COURT_CLERK' || currentUser.role === 'ADMINISTRATOR') {
+  if (currentUser.role === 'COURT_CLERK') {
     await loadRegisteredLitigants();
+    await loadRegisteredLawyers();
   }
   // Setup Role-Specific UI views
   applyRoleVisibility();
@@ -92,9 +95,19 @@ function applyRoleVisibility() {
     loadManagedCourtrooms();
   }
 
-  if (currentUser.role === 'COURT_CLERK' || currentUser.role === 'ADMINISTRATOR') {
+  if (currentUser.role === 'COURT_CLERK') {
     const filingCard = document.getElementById('clerk-case-filing-card');
     if (filingCard) filingCard.classList.remove('hidden');
+  }
+
+  // Conclude Proceeding button is only for Judge, Clerk, and Admin
+  const vcEndBtn = document.getElementById('vc-end-btn');
+  if (vcEndBtn) {
+    if (['JUDGE', 'COURT_CLERK', 'ADMINISTRATOR'].includes(currentUser.role)) {
+      vcEndBtn.classList.remove('hidden');
+    } else {
+      vcEndBtn.classList.add('hidden');
+    }
   }
 
   if (currentUser.role === 'LITIGANT') {
@@ -105,7 +118,7 @@ function applyRoleVisibility() {
     if (greetingName) greetingName.textContent = (currentUser.name || 'there').split(' ')[0];
     document.getElementById('metrics-ribbon')?.classList.add('hidden');
     document.getElementById('audit-trail-card')?.classList.add('hidden');
-    ['live-boards', 'scheduler', 'virtual-court'].forEach(id => {
+    ['live-boards', 'scheduler'].forEach(id => {
       document.getElementById(`tab-btn-${id}`)?.classList.add('hidden');
       document.getElementById(`tab-${id}`)?.classList.add('hidden');
     });
@@ -113,6 +126,7 @@ function applyRoleVisibility() {
     document.getElementById('tab-btn-cases')?.querySelector('span')?.replaceChildren('My cases');
     document.getElementById('tab-btn-causelist')?.querySelector('span')?.replaceChildren('Hearing schedule');
     document.getElementById('tab-btn-notifications')?.querySelector('span')?.replaceChildren('Updates');
+    document.getElementById('tab-btn-virtual-court')?.querySelector('span')?.replaceChildren('Virtual hearings');
     document.querySelectorAll('.tab-btn').forEach(button => {
       button.classList.remove('active', 'bg-blue-600/20', 'text-blue-300', 'border-blue-500/30');
       button.setAttribute('aria-pressed', 'false');
@@ -237,6 +251,23 @@ async function renderLitigantHome(metrics) {
   venue.className = 'next-hearing-venue';
   venue.textContent = [next.courtroom_name, next.courtroom_location].filter(Boolean).join(' · ') || 'Courtroom details not available';
   nextHearingContainer.append(date, time, caseNumber, venue);
+
+  if (['Online', 'Hybrid'].includes(next.hearing_type)) {
+    const joinBtn = document.createElement('button');
+    joinBtn.type = 'button';
+    joinBtn.className = 'mt-3 w-full py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/30';
+    joinBtn.innerHTML = '<i data-lucide="video" class="w-3.5 h-3.5"></i><span>Join Virtual Courtroom</span>';
+    joinBtn.addEventListener('click', async () => {
+      switchTab('virtual-court');
+      const select = document.getElementById('virtual-hearing-select');
+      if (select) {
+        select.value = next.hearing_id;
+        await joinSelectedVirtualHearing();
+      }
+    });
+    nextHearingContainer.append(joinBtn);
+    if (window.lucide) lucide.createIcons();
+  }
 }
 async function loadOverviewMetrics() {
   try {
@@ -605,6 +636,9 @@ async function handleCaseRegistration(e) {
       return;
     }
 
+    const lawyerId = Number(document.getElementById('case-lawyer-input')?.value);
+    const lawyer_assignments = lawyerId ? [{ lawyer_id: lawyerId, representing_party: 'Petitioner' }] : [];
+
     const res = await api('/cases', {
       method: 'POST',
       body: JSON.stringify({
@@ -612,13 +646,16 @@ async function handleCaseRegistration(e) {
         case_type: type,
         priority,
         description: desc,
-        litigant_id: litigantId
+        litigant_id: litigantId,
+        lawyer_assignments: lawyer_assignments
       })
     });
 
     showToast(`Case registered successfully! Assigned Case ID: <b>${res.case_number}</b>`, 'success');
     document.getElementById('case-title-input').value = '';
     document.getElementById('case-desc-input').value = '';
+    const lawyerSelect = document.getElementById('case-lawyer-input');
+    if (lawyerSelect) lawyerSelect.value = '';
     await loadCasesTable();
     await loadSchedulingCases();
   } catch (err) {
@@ -648,6 +685,27 @@ async function loadRegisteredLitigants() {
     select.disabled = true;
     placeholder.textContent = 'Could not load litigant accounts';
     showToast(error.message || 'Could not load registered litigants.', 'error');
+  }
+}
+
+async function loadRegisteredLawyers() {
+  const select = document.getElementById('case-lawyer-input');
+  if (!select) return;
+  select.replaceChildren();
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'None (Party in Person / Self-Represented)';
+  select.appendChild(placeholder);
+  try {
+    const lawyers = await api('/users?role=LAWYER&limit=100');
+    lawyers.forEach(lawyer => {
+      const option = document.createElement('option');
+      option.value = String(lawyer.user_id);
+      option.textContent = `${lawyer.name} (${lawyer.bar_registration_no || lawyer.username})`;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.warn('Could not load lawyers for case filing', error);
   }
 }
 
@@ -694,9 +752,36 @@ async function openCaseDossier(caseId) {
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-slate-900/80 border border-white/5 text-xs font-mono">
         <div><span class="text-slate-500 block">FILING DATE</span>${dossier.filing_date}</div>
         <div><span class="text-slate-500 block">PRIORITY</span><span class="text-amber-400 font-bold">${dossier.priority}</span></div>
-        <div><span class="text-slate-500 block">LITIGANT</span>${dossier.litigant_name || 'Not recorded'}</div>
-        <div><span class="text-slate-500 block">COUNSELS</span>${dossier.lawyers.length > 0 ? dossier.lawyers.map(l => l.name).join(', ') : 'None assigned'}</div>
+        <div><span class="text-slate-500 block">LITIGANT / PETITIONER</span>${dossier.litigant_name || 'Not recorded'}</div>
+        <div><span class="text-slate-500 block">COUNSELS</span>${dossier.lawyers.length > 0 ? dossier.lawyers.map(l => `<span class="inline-block px-1.5 py-0.5 rounded bg-blue-950/60 border border-blue-500/30 text-blue-300 font-bold mr-1 mb-1">${l.name} [${l.representing_party || 'Counsel'}]</span>`).join('') : 'None assigned'}</div>
       </div>
+
+      ${['COURT_CLERK', 'ADMINISTRATOR'].includes(currentUser.role) ? `
+      <!-- Counsel Representation for Opponent / Respondent or Additional Counsel -->
+      <div class="p-4 rounded-xl bg-slate-900/60 border border-white/5 text-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <h5 class="text-xs font-bold text-white uppercase font-mono tracking-wider flex items-center gap-1.5">
+            <i data-lucide="scale" class="w-4 h-4 text-amber-400"></i>
+            <span>Assign Counsel (Petitioner / Respondent Opponent)</span>
+          </h5>
+          <span class="text-[10px] font-mono text-slate-400">Record appearance upon summons</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <select id="modal-assign-lawyer-select" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 text-xs text-white outline-none">
+            <option value="">Loading advocates...</option>
+          </select>
+          <select id="modal-assign-party-select" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 text-xs text-white outline-none">
+            <option value="Respondent" selected>Respondent Counsel (Opponent)</option>
+            <option value="Petitioner">Petitioner Counsel</option>
+            <option value="Intervenor">Intervenor Counsel</option>
+          </select>
+          <button onclick="handleAssignLawyerModal(${caseId})" class="px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-md shadow-indigo-500/20">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+            <span>Record Appearance</span>
+          </button>
+        </div>
+      </div>
+      ` : ''}
 
       <!-- Document Vault Section -->
       <div>
@@ -721,9 +806,9 @@ async function openCaseDossier(caseId) {
                 <span class="text-[10px] font-mono text-blue-400 ml-2">v${d.version}</span>
                 <span class="text-[10px] font-mono text-slate-500 block">SHA-256: ${d.file_hash.substring(0, 16)}...</span>
               </div>
-              <a href="/api/v1/cases/${caseId}/documents/${d.document_id}/download" target="_blank" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono transition">
+              <button data-case-id="${caseId}" data-doc-id="${d.document_id}" data-doc-name="${encodeURIComponent(d.document_name)}" onclick="downloadCaseDocument(this)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono transition cursor-pointer">
                 Download
-              </a>
+              </button>
             </div>
           `).join('')}
         </div>
@@ -750,13 +835,82 @@ async function openCaseDossier(caseId) {
     `;
 
     lucide.createIcons();
+    if (['COURT_CLERK', 'ADMINISTRATOR'].includes(currentUser.role)) {
+      await loadModalLawyersDropdown();
+    }
   } catch (err) {
     modalContent.innerHTML = `<div class="p-4 text-xs text-rose-400">Error: ${err.message}</div>`;
   }
 }
 
+async function loadModalLawyersDropdown() {
+  const select = document.getElementById('modal-assign-lawyer-select');
+  if (!select) return;
+  try {
+    const lawyers = await api('/users?role=LAWYER&limit=100');
+    select.replaceChildren();
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Select Advocate to Assign...';
+    select.appendChild(placeholder);
+    lawyers.forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = String(l.user_id);
+      opt.textContent = `${l.name} (${l.bar_registration_no || l.username})`;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    console.warn('Failed to load advocates in modal', err);
+  }
+}
+
+async function handleAssignLawyerModal(caseId) {
+  const lawyerId = Number(document.getElementById('modal-assign-lawyer-select')?.value);
+  const party = document.getElementById('modal-assign-party-select')?.value || 'Respondent';
+  if (!lawyerId) {
+    showToast('Please select an advocate to assign.', 'warning');
+    return;
+  }
+  try {
+    await api(`/cases/${caseId}/lawyers`, {
+      method: 'POST',
+      body: JSON.stringify({
+        lawyer_id: lawyerId,
+        representing_party: party
+      })
+    });
+    showToast(`Advocate assigned successfully as ${party} Counsel!`, 'success');
+    await openCaseDossier(caseId);
+    await loadCasesTable();
+  } catch (err) {
+    showToast(`Failed to assign advocate: ${err.message}`, 'error');
+  }
+}
+
 function closeCaseModal() {
   document.getElementById('case-detail-modal').classList.add('hidden');
+}
+
+async function downloadCaseDocument(btn) {
+  const caseId = btn.getAttribute('data-case-id');
+  const docId = btn.getAttribute('data-doc-id');
+  const docName = decodeURIComponent(btn.getAttribute('data-doc-name') || 'document');
+  try {
+    showToast(`Downloading ${docName}...`, 'info');
+    const response = await api(`/cases/${caseId}/documents/${docId}/download`);
+    const blob = await response.blob();
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = docName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 30000);
+    showToast(`Downloaded ${docName}`, 'success');
+  } catch (err) {
+    showToast(`Download failed: ${err.message}`, 'error');
+  }
 }
 
 async function uploadCaseDocument(e, caseId) {
@@ -867,29 +1021,63 @@ async function downloadCauseListPdf() {
   try {
     const causeLists = await api(`/cause-lists?date_from=${dateVal}&date_to=${dateVal}`);
     if (causeLists.length > 0) {
-      window.open(`/api/v1/cause-lists/${causeLists[0].cause_list_id}/pdf`, '_blank');
+      showToast('Preparing Cause List PDF...', 'info');
+      const response = await api(`/cause-lists/${causeLists[0].cause_list_id}/pdf`);
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `CauseList_${dateVal}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.open(downloadUrl, '_blank');
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 30000);
+      showToast(`Daily Cause List for ${dateVal} downloaded!`, 'success');
     } else {
       showToast('No cause list exists for this date. Compile it first.', 'warning');
     }
   } catch (err) {
-    showToast(err.message, 'error');
+    showToast(`PDF download failed: ${err.message}`, 'error');
   }
 }
 
-function exportIcalSync() {
-  window.open('/api/v1/cause-lists/calendar/export.ics', '_blank');
-  showToast('iCalendar (.ics) exported for Google Calendar / Outlook sync!', 'success');
+async function exportIcalSync() {
+  try {
+    const response = await api('/cause-lists/calendar/export.ics');
+    const downloadUrl = URL.createObjectURL(await response.blob());
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = 'nyayasetu_court_calendar.ics';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+    showToast('Calendar file downloaded. Import it into your calendar app.', 'success');
+  } catch (error) {
+    showToast(`Calendar export failed: ${error.message}`, 'error');
+  }
 }
 
 // 6. Virtual Courtroom & Live Transcription
 async function loadVirtualHearingDropdown() {
   try {
-    const hearings = await api('/hearings?limit=20');
+    const hearings = await api('/hearings?limit=50');
     const select = document.getElementById('virtual-hearing-select');
     if (!select) return;
 
     select.innerHTML = '<option value="">Select a Virtual Hearing...</option>';
-    hearings.forEach(h => {
+    const virtualHearings = hearings.filter(h => 
+      ['Online', 'Hybrid'].includes(h.hearing_type) && 
+      !['Cancelled', 'Completed', 'Disposed'].includes(h.hearing_status)
+    );
+
+    if (virtualHearings.length === 0) {
+      select.innerHTML = '<option value="">No active virtual hearings scheduled</option>';
+      return;
+    }
+
+    virtualHearings.forEach(h => {
       const opt = document.createElement('option');
       opt.value = h.hearing_id;
       opt.innerText = `Hearing #${h.hearing_id} (${h.case_number}) - ${h.hearing_date} ${h.hearing_time}`;
@@ -921,19 +1109,68 @@ async function joinSelectedVirtualHearing() {
       method: 'POST'
     });
 
+    const meetingUrl = new URL(joinRes.meeting_url);
+    if (meetingUrl.protocol !== 'https:') {
+      throw new Error('The video conference provider must use HTTPS.');
+    }
+
     document.getElementById('vc-room-title').innerText = `${joinRes.room_name} (${joinRes.role})`;
-    document.getElementById('vc-viewport-header').innerText = `Session Connected`;
-    document.getElementById('vc-viewport-sub').innerText = `Joined as ${joinRes.participant_name} • Video Conference Link Active`;
-    
+    document.getElementById('vc-viewport-header').innerText = `Conference ready`;
+    document.getElementById('vc-viewport-sub').innerText = `Joined as ${joinRes.participant_name}. Allow microphone and camera access in the conference.`;
+
     const linkBox = document.getElementById('vc-live-link-box');
     linkBox.classList.remove('hidden');
-    linkBox.innerHTML = `Meeting URL: <a href="${joinRes.meeting_url}" target="_blank" class="underline text-blue-300">${joinRes.meeting_url}</a>`;
+    linkBox.replaceChildren();
+    const linkLabel = document.createElement('span');
+    linkLabel.textContent = 'Open conference in a new tab: ';
+    const meetingLink = document.createElement('a');
+    meetingLink.href = meetingUrl.href;
+    meetingLink.target = '_blank';
+    meetingLink.rel = 'noopener noreferrer';
+    meetingLink.className = 'underline text-blue-300';
+    meetingLink.textContent = 'Join video conference';
+    linkBox.append(linkLabel, meetingLink);
 
-    showToast(`Connected to virtual courtroom!`, 'success');
+    const meetingFrame = document.getElementById('vc-meeting-frame');
+    if (joinRes.meeting_provider === 'google_meet') {
+      // Meet is a hosted conference, so join from Google Meet in its own tab.
+      meetingFrame.src = 'about:blank';
+      meetingFrame.classList.add('hidden');
+      document.getElementById('vc-viewport-header').innerText = 'Google Meet is ready';
+      document.getElementById('vc-viewport-sub').innerText = 'Use the conference link above to join in Google Meet. Attendance in NyayaSetu records when you open and leave this session.';
+    } else {
+      meetingFrame.src = meetingUrl.href;
+      meetingFrame.classList.remove('hidden');
+    }
+    document.getElementById('vc-leave-btn').classList.remove('hidden');
+
+    showToast('Conference opened. Allow camera and microphone access to participate.', 'success');
     await refreshTranscriptFeed(session.online_hearing_id);
     await refreshAttendeesCounter(session.online_hearing_id);
   } catch (err) {
-    showToast(`Access Denied: ${err.message}`, 'error');
+    const msg = err.message || 'Unable to join virtual courtroom';
+    if (msg.includes('not open yet') || msg.includes('scheduled for')) {
+      showToast(msg, 'warning');
+      document.getElementById('vc-viewport-header').innerText = 'Courtroom Not In Session';
+      document.getElementById('vc-viewport-sub').innerText = msg;
+    } else {
+      showToast(`Access Denied: ${msg}`, 'error');
+    }
+  }
+}
+
+async function leaveVirtualHearing() {
+  if (!currentHearingSession) return;
+
+  const frame = document.getElementById('vc-meeting-frame');
+  frame.src = 'about:blank';
+  frame.classList.add('hidden');
+  document.getElementById('vc-leave-btn').classList.add('hidden');
+  try {
+    await api(`/virtual-court/sessions/${currentHearingSession.online_hearing_id}/leave`, { method: 'POST' });
+    showToast('You left the conference.', 'success');
+  } catch (err) {
+    showToast(`Conference closed, but attendance could not be updated: ${err.message}`, 'warning');
   }
 }
 
@@ -949,26 +1186,12 @@ async function refreshTranscriptFeed(onlineHearingId) {
   const feed = document.getElementById('vc-transcript-feed');
   try {
     const t = await api(`/virtual-court/sessions/${onlineHearingId}/transcript`);
-    feed.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-[11px] text-slate-300">${t.transcript_text}</pre>`;
+    const transcript = document.createElement('pre');
+    transcript.className = 'whitespace-pre-wrap font-mono text-[11px] text-slate-300';
+    transcript.textContent = t.transcript_text;
+    feed.replaceChildren(transcript);
   } catch {
     feed.innerHTML = `<p class="text-slate-500 italic text-[11px]">Proceeding in session. Transcript will compile upon hearing conclusion.</p>`;
-  }
-}
-
-async function toggleVcRecording() {
-  if (!currentHearingSession) {
-    showToast('No active hearing session', 'warning');
-    return;
-  }
-  const btn = document.getElementById('vc-rec-btn');
-  try {
-    const res = await api(`/virtual-court/sessions/${currentHearingSession.online_hearing_id}/recording?enable=true`, {
-      method: 'POST'
-    });
-    showToast('Recording activated! Audio/video stream is being securely archived.', 'info');
-    btn.classList.add('bg-rose-600', 'text-white');
-  } catch (err) {
-    showToast(`Recording control restricted: ${err.message}`, 'error');
   }
 }
 
@@ -982,7 +1205,8 @@ async function concludeHearingSession() {
     const res = await api(`/virtual-court/sessions/${currentHearingSession.online_hearing_id}/end`, {
       method: 'POST'
     });
-    showToast('Proceeding concluded! AI Transcript automatically compiled.', 'success');
+    await leaveVirtualHearing();
+    showToast('Proceeding concluded. A session record was saved; speech transcription is not configured.', 'info');
     await refreshTranscriptFeed(currentHearingSession.online_hearing_id);
     await loadLiveBoards();
   } catch (err) {
@@ -990,11 +1214,27 @@ async function concludeHearingSession() {
   }
 }
 
-function downloadTranscriptPdf() {
-  if (currentHearingSession) {
-    window.open(`/api/v1/virtual-court/sessions/${currentHearingSession.online_hearing_id}/transcript/pdf`, '_blank');
-  } else {
+async function downloadTranscriptPdf() {
+  if (!currentHearingSession) {
     showToast('Join a hearing session first.', 'warning');
+    return;
+  }
+  try {
+    showToast('Preparing transcript PDF...', 'info');
+    const response = await api(`/virtual-court/sessions/${currentHearingSession.online_hearing_id}/transcript/pdf`);
+    const blob = await response.blob();
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `Hearing_Transcript_${currentHearingSession.online_hearing_id}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.open(downloadUrl, '_blank');
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 30000);
+    showToast('Transcript PDF downloaded successfully!', 'success');
+  } catch (err) {
+    showToast(`Transcript download failed: ${err.message}`, 'error');
   }
 }
 
@@ -1040,29 +1280,43 @@ async function markAllNotificationsRead() {
 
 async function loadAuditLogs() {
   const container = document.getElementById('audit-logs-list');
+  if (!container) return;
   if (currentUser.role !== 'ADMINISTRATOR') {
-    container.innerHTML = `<p class="text-slate-500 italic text-[11px]">Audit trail access restricted to System Administrators (SRS NFR-5.3.7).</p>`;
+    container.textContent = 'Audit trail access is restricted to administrators.';
     return;
   }
 
   try {
     const logs = await api('/audit-logs?limit=30');
-    container.innerHTML = '';
+    container.replaceChildren();
+    if (!logs.length) {
+      const empty = document.createElement('p');
+      empty.className = 'text-sm text-slate-600';
+      empty.textContent = 'No administrative activity has been recorded yet.';
+      container.appendChild(empty);
+      return;
+    }
     logs.forEach(l => {
       const el = document.createElement('div');
-      el.className = 'p-2 rounded border border-white/5 bg-slate-950/60 flex items-start justify-between gap-2';
-      el.innerHTML = `
-        <div>
-          <span class="font-bold text-emerald-400">${l.action}</span>
-          <span class="text-slate-500 ml-1.5">[${l.entity_type}]</span>
-          <div class="text-[11px] text-slate-300 mt-0.5">${l.details || ''}</div>
-        </div>
-        <span class="text-[10px] text-slate-500 shrink-0">${formatCourtDateTime(l.date_time, false)}</span>
-      `;
+      el.className = 'flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3';
+      const content = document.createElement('div');
+      const action = document.createElement('p');
+      action.className = 'font-semibold text-slate-900';
+      action.textContent = `${l.action} · ${l.entity_type}`;
+      const details = document.createElement('p');
+      details.className = 'mt-1 text-sm leading-relaxed text-slate-600';
+      details.textContent = l.details || 'No additional details recorded.';
+      const timestamp = document.createElement('time');
+      timestamp.className = 'shrink-0 text-xs text-slate-600';
+      timestamp.dateTime = l.date_time;
+      timestamp.textContent = formatCourtDateTime(l.date_time, false);
+      content.append(action, details);
+      el.append(content, timestamp);
       container.appendChild(el);
     });
   } catch (err) {
     console.warn('Error loading audit logs', err);
+    container.textContent = 'Audit activity could not be loaded. Refresh to try again.';
   }
 }
 
@@ -1135,42 +1389,90 @@ async function loadManagedStaffAccounts() {
   loading.textContent = 'Loading accounts…';
   list.appendChild(loading);
   try {
-    const users = await api('/users?limit=100');
-    const staff = users.filter(user => ['COURT_CLERK', 'JUDGE', 'LAWYER'].includes(user.role));
-    list.replaceChildren();
-    if (!staff.length) {
-      const empty = document.createElement('p');
-      empty.className = 'text-sm leading-relaxed text-slate-600';
-      empty.textContent = 'No clerk, judge, or advocate accounts have been registered yet.';
-      list.appendChild(empty);
-      return;
-    }
-
-    staff.forEach(user => {
-      const card = document.createElement('article');
-      card.className = 'staff-account-card';
-      const heading = document.createElement('div');
-      heading.className = 'staff-account-card-heading';
-      const name = document.createElement('h4');
-      name.textContent = user.name;
-      const role = document.createElement('span');
-      role.className = 'staff-account-role';
-      role.textContent = ({ COURT_CLERK: 'Court clerk', JUDGE: 'Judge', LAWYER: 'Advocate' })[user.role] || user.role;
-      heading.append(name, role);
-      const details = document.createElement('p');
-      details.textContent = `${user.username} · ${user.email}`;
-      const status = document.createElement('p');
-      status.className = 'staff-account-status';
-      status.textContent = user.is_active ? 'Active account' : 'Inactive account';
-      card.append(heading, details, status);
-      list.appendChild(card);
-    });
+    managedStaffAccounts = (await api('/users?limit=200'))
+      .filter(user => ['COURT_CLERK', 'JUDGE', 'LAWYER'].includes(user.role));
+    filterManagedStaffAccounts();
   } catch (error) {
     list.replaceChildren();
     const message = document.createElement('p');
     message.className = 'staff-feedback-error rounded-xl border px-4 py-3 text-sm';
     message.textContent = error.message || 'Could not load accounts.';
     list.appendChild(message);
+  }
+}
+
+function filterManagedStaffAccounts() {
+  const list = document.getElementById('managed-staff-list');
+  if (!list || currentUser?.role !== 'ADMINISTRATOR') return;
+  const search = (document.getElementById('staff-account-search')?.value || '').trim().toLocaleLowerCase();
+  const roleFilter = document.getElementById('staff-account-role-filter')?.value || '';
+  const matches = managedStaffAccounts.filter(user => {
+    const searchable = `${user.name} ${user.username} ${user.email}`.toLocaleLowerCase();
+    return (!search || searchable.includes(search)) && (!roleFilter || user.role === roleFilter);
+  });
+  list.replaceChildren();
+  if (!managedStaffAccounts.length) {
+    const empty = document.createElement('p');
+    empty.className = 'text-sm leading-relaxed text-slate-600';
+    empty.textContent = 'No clerk, judge, or advocate accounts have been registered yet. Create the first account using the form.';
+    list.appendChild(empty);
+    return;
+  }
+  if (!matches.length) {
+    const empty = document.createElement('p');
+    empty.className = 'text-sm leading-relaxed text-slate-600';
+    empty.textContent = 'No staff accounts match these filters. Clear the search or choose another account type.';
+    list.appendChild(empty);
+    return;
+  }
+
+  matches.forEach(user => {
+    const card = document.createElement('article');
+    card.className = 'staff-account-card';
+    const heading = document.createElement('div');
+    heading.className = 'staff-account-card-heading';
+    const name = document.createElement('h4');
+    name.textContent = user.name;
+    const role = document.createElement('span');
+    role.className = 'staff-account-role';
+    role.textContent = ({ COURT_CLERK: 'Court clerk', JUDGE: 'Judge', LAWYER: 'Advocate' })[user.role] || user.role;
+    heading.append(name, role);
+    const details = document.createElement('p');
+    details.textContent = `${user.username} · ${user.email}`;
+    const footer = document.createElement('div');
+    footer.className = 'mt-3 flex flex-wrap items-center justify-between gap-2';
+    const status = document.createElement('p');
+    status.className = `staff-account-status ${user.is_active ? 'is-active' : 'is-inactive'}`;
+    status.textContent = user.is_active ? 'Active account · can sign in' : 'Inactive account · sign-in disabled';
+    const statusButton = document.createElement('button');
+    statusButton.type = 'button';
+    statusButton.className = 'min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-amber-700';
+    statusButton.textContent = user.is_active ? 'Deactivate access' : 'Reactivate access';
+    statusButton.setAttribute('aria-label', `${user.is_active ? 'Deactivate' : 'Reactivate'} sign-in access for ${user.name}`);
+    statusButton.addEventListener('click', () => updateManagedUserStatus(user, !user.is_active, statusButton));
+    footer.append(status, statusButton);
+    card.append(heading, details, footer);
+    list.appendChild(card);
+  });
+}
+
+async function updateManagedUserStatus(user, isActive, button) {
+  if (currentUser?.role !== 'ADMINISTRATOR') return;
+  if (!isActive && !window.confirm(`Deactivate sign-in access for ${user.name}? You can reactivate this account later.`)) return;
+  button.disabled = true;
+  try {
+    await api(`/users/${user.user_id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ is_active: isActive })
+    });
+    managedStaffAccounts = managedStaffAccounts.map(account =>
+      account.user_id === user.user_id ? { ...account, is_active: isActive } : account
+    );
+    setStaffAccountFeedback(`${user.name}'s sign-in access is now ${isActive ? 'active' : 'deactivated'}.`, 'success');
+    filterManagedStaffAccounts();
+  } catch (error) {
+    setStaffAccountFeedback(error.message || 'Account access could not be changed.', 'error');
+    button.disabled = false;
   }
 }
 

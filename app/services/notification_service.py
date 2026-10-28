@@ -1,8 +1,13 @@
 import logging
+import smtplib
+from email.message import EmailMessage
 from datetime import datetime, date, timedelta
 from typing import List, Optional, Dict, Any
+from urllib.parse import quote
+import httpx
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models.notification import Notification
 from app.models.user import User
 from app.models.hearing import Hearing
@@ -14,6 +19,65 @@ from app.services.ai_scheduler_service import AISchedulerService
 logger = logging.getLogger("nyayasetu.notifications")
 
 class NotificationService:
+
+    @staticmethod
+    def deliver_external(user: User, title: str, message: str, notification_type: str) -> str:
+        """Send through a configured provider and return the provider-accepted status."""
+        if notification_type == "Email":
+            if not settings.SMTP_HOST or not settings.SMTP_FROM_EMAIL:
+                raise RuntimeError("SMTP is not configured")
+            if bool(settings.SMTP_USERNAME) != bool(settings.SMTP_PASSWORD):
+                raise RuntimeError("SMTP username and password must both be configured")
+            if settings.SMTP_USERNAME and not (settings.SMTP_USE_TLS or settings.SMTP_USE_SSL):
+                raise RuntimeError("SMTP authentication requires TLS")
+            if not user.email:
+                raise RuntimeError("Recipient has no email address")
+
+            email = EmailMessage()
+            email["Subject"] = title
+            email["From"] = settings.SMTP_FROM_EMAIL
+            email["To"] = user.email
+            email.set_content(message)
+
+            smtp_class = smtplib.SMTP_SSL if settings.SMTP_USE_SSL else smtplib.SMTP
+            with smtp_class(settings.SMTP_HOST, settings.SMTP_PORT, timeout=15) as server:
+                if settings.SMTP_USE_TLS and not settings.SMTP_USE_SSL:
+                    server.starttls()
+                if settings.SMTP_USERNAME:
+                    server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+                refused_recipients = server.send_message(email)
+                if refused_recipients:
+                    raise RuntimeError("SMTP server refused the recipient")
+            return "Sent"
+
+        if notification_type == "SMS":
+            if not (settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and settings.TWILIO_FROM_NUMBER):
+                raise RuntimeError("SMS provider is not configured")
+            if not user.mobile_no:
+                raise RuntimeError("Recipient has no mobile number")
+
+            digits = "".join(character for character in user.mobile_no if character.isdigit())
+            if user.mobile_no.strip().startswith("+"):
+                recipient_number = f"+{digits}"
+            elif len(digits) == 10:
+                recipient_number = f"+91{digits}"
+            elif digits.startswith("91") and len(digits) == 12:
+                recipient_number = f"+{digits}"
+            else:
+                raise RuntimeError("Recipient mobile number is not a valid Indian number")
+
+            account = quote(settings.TWILIO_ACCOUNT_SID, safe="")
+            url = f"https://api.twilio.com/2010-04-01/Accounts/{account}/Messages.json"
+            response = httpx.post(
+                url,
+                data={"To": recipient_number, "From": settings.TWILIO_FROM_NUMBER, "Body": f"{title}\n{message}"},
+                auth=(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN),
+                timeout=15.0
+            )
+            response.raise_for_status()
+            return "Sent"
+
+        raise ValueError(f"Unsupported notification type: {notification_type}")
 
     @staticmethod
     def send_single_notification(
@@ -32,9 +96,11 @@ class NotificationService:
         if not user:
             raise ValueError(f"Recipient user #{recipient_id} not found")
 
-        # Determine delivery status
-        # In production, SMTP or SMS gateway returns sent/delivered.
-        delivery_status = "Delivered"
+        if notification_type not in {"In-App", "Email", "SMS"}:
+            raise ValueError(f"Unsupported notification type: {notification_type}")
+
+        # Only mark external messages delivered after a provider accepts them.
+        delivery_status = "Delivered" if notification_type == "In-App" else "Pending"
 
         notif = Notification(
             recipient_id=recipient_id,
@@ -49,6 +115,21 @@ class NotificationService:
         db.add(notif)
         db.commit()
         db.refresh(notif)
+
+        if notification_type in {"Email", "SMS"}:
+            try:
+                notif.delivery_status = NotificationService.deliver_external(
+                    user, title, message, notification_type
+                )
+            except Exception as exc:
+                notif.delivery_status = "Failed"
+                logger.warning(
+                    "Notification %s delivery failed (%s)",
+                    notif.notification_id,
+                    type(exc).__name__
+                )
+            db.commit()
+            db.refresh(notif)
 
         # Broadcast live in-app notification via WebSocket if In-App
         if notification_type == "In-App":
@@ -65,11 +146,11 @@ class NotificationService:
         # Audit trail
         AuditService.log(
             db=db,
-            action="NOTIFICATION_SENT",
+            action="NOTIFICATION_DELIVERY_ATTEMPT",
             entity_type="Notification",
             entity_id=str(notif.notification_id),
             user_id=recipient_id,
-            details=f"Notification [{notification_type}] '{title}' dispatched to {user.username} ({delivery_status})"
+            details=f"Notification [{notification_type}] '{title}' to {user.username}: {delivery_status}"
         )
 
         return notif
@@ -158,7 +239,7 @@ class NotificationService:
 
         dispatched: List[Notification] = []
 
-        # Send both In-App and Email notices for each recipient (BR-5.13 Mandatory Delivery)
+        # Send in-app and email notices; failed email delivery remains visible for retry.
         for uid in recipient_ids:
             # In-App notification
             in_app_notif = NotificationService.send_single_notification(
@@ -221,15 +302,35 @@ class NotificationService:
         Retries delivery for failed or pending notifications (FR-4.8.3 Notification.Retry).
         """
         failed_notifs = db.query(Notification).filter(
-            Notification.delivery_status.in_(["Failed", "Pending"])
+            Notification.delivery_status.in_(["Failed", "Pending"]),
+            Notification.notification_type.in_(["Email", "SMS"])
         ).all()
 
         retried_count = 0
         for n in failed_notifs:
-            n.delivery_status = "Delivered"
-            retried_count += 1
-
-        if retried_count > 0:
+            user = db.query(User).filter(User.user_id == n.recipient_id).first()
+            if not user:
+                continue
+            try:
+                n.delivery_status = NotificationService.deliver_external(
+                    user, n.title, n.message, n.notification_type
+                )
+            except Exception as exc:
+                n.delivery_status = "Failed"
+                logger.warning(
+                    "Notification %s retry failed (%s)",
+                    n.notification_id,
+                    type(exc).__name__
+                )
             db.commit()
+            AuditService.log(
+                db=db,
+                action="NOTIFICATION_RETRY_ATTEMPT",
+                entity_type="Notification",
+                entity_id=str(n.notification_id),
+                user_id=user.user_id,
+                details=f"Retry for {n.notification_type} notification ended with status {n.delivery_status}"
+            )
+            retried_count += 1
 
         return retried_count

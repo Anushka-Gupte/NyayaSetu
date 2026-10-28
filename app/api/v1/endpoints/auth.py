@@ -1,4 +1,6 @@
-from datetime import datetime
+import logging
+from datetime import datetime, timedelta
+from urllib.parse import quote
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
@@ -7,6 +9,7 @@ from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 
 from app.core.database import get_db
+from app.core.config import settings
 from app.core.security import verify_password, create_access_token, get_password_hash
 from app.models.user import User, UserRole, Administrator, CourtClerk, Judge, Lawyer, Litigant
 from app.schemas.auth import (
@@ -19,8 +22,11 @@ from app.schemas.auth import (
 )
 from app.api.deps import get_current_active_user
 from app.services.audit_service import AuditService
+from app.services.notification_service import NotificationService
+from app.models.audit import AuditLog
 
 router = APIRouter()
+logger = logging.getLogger("nyayasetu.auth")
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED, summary="Register a Citizen Account")
 def register_citizen(
@@ -242,26 +248,33 @@ def request_password_reset(
     Initiate password reset via registered email (FR-4.1.3).
     """
     user = db.query(User).filter(User.email == req.email).first()
-    if not user:
-        # Avoid user enumeration by returning standard response
-        return {"message": "If this email is registered, password reset instructions have been generated."}
+    if user:
+        reset_token = create_access_token(
+            data={"sub": user.username, "type": "password_reset"},
+            expires_delta=timedelta(minutes=15)
+        )
+        reset_url = f"{settings.APP_BASE_URL.rstrip('/')}/auth/reset#token={quote(reset_token, safe='')}"
+        try:
+            NotificationService.deliver_external(
+                user,
+                "NyayaSetu password reset",
+                f"To reset your NyayaSetu password, open this one-time link within 15 minutes:\n{reset_url}\n\nIf you did not request a reset, ignore this email.",
+                "Email"
+            )
+        except Exception as exc:
+            logger.warning("Password reset email delivery failed (%s)", type(exc).__name__)
 
-    # Generate reset token (in real production email is dispatched; here token is logged & acknowledged)
-    reset_token = create_access_token(data={"sub": user.username, "type": "password_reset"})
-    
-    AuditService.log(
-        db=db,
-        action="PASSWORD_RESET_REQUESTED",
-        entity_type="User",
-        entity_id=str(user.user_id),
-        user_id=user.user_id,
-        details=f"Password reset requested for {user.email}"
-    )
+        AuditService.log(
+            db=db,
+            action="PASSWORD_RESET_REQUESTED",
+            entity_type="User",
+            entity_id=str(user.user_id),
+            user_id=user.user_id,
+            details="Password reset instructions requested"
+        )
 
-    return {
-        "message": "Password reset instructions have been issued.",
-        "reset_token_dev": reset_token # Provided for easy testing in development
-    }
+    # Use the same response whether or not the address belongs to an account.
+    return {"message": "If this email is registered, password reset instructions will be sent."}
 
 
 @router.post("/password-reset-confirm", summary="Confirm Password Reset")
@@ -284,6 +297,19 @@ def confirm_password_reset(
     user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    issued_at = payload.get("iat")
+    last_reset = db.query(AuditLog).filter(
+        AuditLog.user_id == user.user_id,
+        AuditLog.action == "PASSWORD_RESET_COMPLETED"
+    ).order_by(AuditLog.date_time.desc()).first()
+    if not issued_at or (
+        last_reset and datetime.utcfromtimestamp(issued_at) <= last_reset.date_time
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid, expired, or already used password reset token"
+        )
 
     user.password = get_password_hash(req.new_password)
     db.commit()

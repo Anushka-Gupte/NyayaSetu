@@ -273,6 +273,7 @@
 
   </div>
 
+  <script>window.NYAYASETU_IDLE_TIMEOUT_MINUTES = {{ idle_timeout_minutes | int }};</script>
   <script src="/static/js/api.js"></script>
   <script>
     lucide.createIcons();
@@ -405,7 +406,7 @@
           method: 'POST',
           body: JSON.stringify({ email: email })
         }).then(res => {
-          alert(res.message + (res.reset_token_dev ? "\n\n(Dev Token: " + res.reset_token_dev.substring(0, 25) + "...)" : ""));
+          alert(res.message);
         }).catch(err => {
           alert("Error: " + err.message);
         });

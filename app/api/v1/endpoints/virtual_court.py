@@ -1,6 +1,7 @@
 import os
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, date
+from urllib.parse import urlparse
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request, Response
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -18,8 +19,8 @@ from app.schemas.virtual_court import (
 )
 from app.api.deps import get_current_active_user, require_roles
 from app.services.virtual_court_service import VirtualCourtService
+from app.services.google_meet_service import GoogleMeetService
 from app.services.audit_service import AuditService
-from app.core.security import create_access_token
 
 router = APIRouter()
 
@@ -36,6 +37,7 @@ def build_online_hearing_response(oh: OnlineHearing) -> OnlineHearingResponse:
         case_title=case.title if case else "Judicial Matter",
         meeting_link=oh.meeting_link,
         meeting_passcode=oh.meeting_passcode,
+        meeting_provider=oh.meeting_provider,
         start_time=oh.start_time,
         end_time=oh.end_time,
         is_recorded=oh.is_recorded,
@@ -45,15 +47,34 @@ def build_online_hearing_response(oh: OnlineHearing) -> OnlineHearingResponse:
         transcript_id=transcript_id
     )
 
+
+def get_authorized_online_hearing(
+    online_hearing_id: int,
+    db: Session,
+    current_user: User
+) -> OnlineHearing:
+    """Load a session only for a participant assigned to its hearing."""
+    online_hearing = db.query(OnlineHearing).filter(
+        OnlineHearing.online_hearing_id == online_hearing_id
+    ).first()
+    if not online_hearing:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Virtual hearing session not found")
+    if not online_hearing.hearing or not VirtualCourtService.verify_participant_access(
+        db, current_user, online_hearing.hearing
+    ):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not assigned to this hearing")
+    return online_hearing
+
 @router.post("/sessions", response_model=OnlineHearingResponse, status_code=status.HTTP_201_CREATED, summary="Create Virtual Courtroom Session")
 def create_virtual_session(
     session_in: OnlineHearingCreate,
     request: Request = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(UserRole.COURT_CLERK, UserRole.ADMINISTRATOR))
+    current_user: User = Depends(get_current_active_user)
 ):
     """
-    Creates a secure virtual hearing link and session room (FR-4.6.3 VirtualHearing.Link.Generate).
+    Creates or retrieves a secure virtual hearing link and session room (FR-4.6.3 VirtualHearing.Link.Generate).
+    Accessible by court staff and all authorized hearing participants (Judge, Litigant, Assigned Advocates).
     """
     client_ip = request.client.host if (request and request.client) else None
 
@@ -61,16 +82,39 @@ def create_virtual_session(
     if not hearing:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Hearing not found")
 
+    # Verify that the current user has access to this hearing
+    if not VirtualCourtService.verify_participant_access(db, current_user, hearing):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access Denied: You are not authorized for this hearing."
+        )
+
     # Check if session already exists
     existing = db.query(OnlineHearing).filter(OnlineHearing.hearing_id == session_in.hearing_id).first()
     if existing:
         return build_online_hearing_response(existing)
 
     case_num = hearing.case.case_number if hearing.case else f"CASE_{hearing.case_id}"
-    room_name, meeting_link, passcode = VirtualCourtService.generate_room_details(hearing.hearing_id, case_num)
-
-    # Use provided passcode or auto-generated
-    final_passcode = session_in.meeting_passcode or passcode
+    provider = settings.VIRTUAL_COURT_PROVIDER.strip().lower()
+    if provider == "google_meet":
+        if session_in.meeting_passcode:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Google Meet manages meeting admission; an application passcode cannot be set.",
+            )
+        meeting_link, provider_space_name = GoogleMeetService.create_space()
+        meeting_passcode = None
+    elif provider == "jitsi":
+        _, meeting_link, generated_passcode = VirtualCourtService.generate_room_details(
+            hearing.hearing_id, case_num
+        )
+        meeting_passcode = session_in.meeting_passcode or generated_passcode
+        provider_space_name = None
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="VIRTUAL_COURT_PROVIDER must be either 'jitsi' or 'google_meet'.",
+        )
 
     # Update hearing mode to Online/Hybrid
     if hearing.hearing_type == "Physical":
@@ -79,7 +123,9 @@ def create_virtual_session(
     online_hearing = OnlineHearing(
         hearing_id=hearing.hearing_id,
         meeting_link=meeting_link,
-        meeting_passcode=final_passcode,
+        meeting_passcode=meeting_passcode,
+        meeting_provider=provider,
+        provider_space_name=provider_space_name,
         is_recorded=False
     )
     db.add(online_hearing)
@@ -132,18 +178,51 @@ def join_virtual_hearing(
             detail="Access Denied: You are not authorized to attend this court proceeding (BR-5.9)."
         )
 
+    # Date restriction: Cannot join proceeding before the scheduled date
+    today = date.today()
+    if oh.hearing and oh.hearing.hearing_date > today:
+        formatted_date = oh.hearing.hearing_date.strftime("%d-%b-%Y")
+        formatted_time = oh.hearing.hearing_time.strftime("%I:%M %p") if oh.hearing.hearing_time else ""
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Virtual courtroom is not open yet. This hearing is scheduled for {formatted_date} at {formatted_time}. Participants may only join on the scheduled date."
+        )
+
+    if oh.hearing and oh.hearing.hearing_status in ("Completed", "Concluded", "Cancelled", "Adjourned"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot join proceeding. This hearing status is '{oh.hearing.hearing_status}'."
+        )
+
+    meeting_url = urlparse(oh.meeting_link)
+    if oh.meeting_provider == "google_meet":
+        valid_meeting_url = (
+            meeting_url.scheme == "https"
+            and meeting_url.hostname == "meet.google.com"
+            and not meeting_url.query
+            and not meeting_url.fragment
+        )
+    else:
+        provider_url = urlparse(settings.VIRTUAL_COURT_BASE_URL)
+        provider_path = provider_url.path.rstrip("/")
+        valid_meeting_url = (
+            provider_url.scheme == "https"
+            and meeting_url.scheme == "https"
+            and meeting_url.netloc.lower() == provider_url.netloc.lower()
+            and meeting_url.path.startswith(f"{provider_path}/")
+            and not meeting_url.query
+            and not meeting_url.fragment
+        )
+    if not valid_meeting_url:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="The conference link does not match the configured HTTPS provider. Contact court administration."
+        )
+
     # Log attendance
     VirtualCourtService.record_attendance_join(db, oh.online_hearing_id, current_user, client_ip)
 
-    # Generate temporary JWT for video conference room authentication
-    jwt_room_token = create_access_token(data={
-        "sub": current_user.username,
-        "name": current_user.name,
-        "role": current_user.role.value,
-        "room": oh.meeting_link.split("/")[-1]
-    })
-
-    room_name = oh.meeting_link.split("/")[-1]
+    room_name = oh.provider_space_name or oh.meeting_link.rstrip("/").split("/")[-1]
 
     AuditService.log(
         db=db,
@@ -161,7 +240,7 @@ def join_virtual_hearing(
         room_name=room_name,
         participant_name=current_user.name,
         role=current_user.role.value,
-        jwt_room_token=jwt_room_token
+        meeting_provider=oh.meeting_provider,
     )
 
 
@@ -174,6 +253,7 @@ def leave_virtual_hearing(
     """
     Records departure timestamp in attendance tracking log.
     """
+    get_authorized_online_hearing(online_hearing_id, db, current_user)
     VirtualCourtService.record_attendance_leave(db, online_hearing_id, current_user.user_id)
     return {"message": f"Recorded departure for {current_user.name}."}
 
@@ -192,6 +272,15 @@ def start_online_hearing(
     oh = db.query(OnlineHearing).filter(OnlineHearing.online_hearing_id == online_hearing_id).first()
     if not oh:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Virtual hearing session not found")
+    if current_user.role == UserRole.JUDGE and (not oh.hearing or oh.hearing.judge_id != current_user.user_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the assigned judge may start this hearing")
+
+    if oh.hearing and oh.hearing.hearing_date > date.today():
+        formatted_date = oh.hearing.hearing_date.strftime("%d-%b-%Y")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot commence hearing before the scheduled date ({formatted_date})."
+        )
 
     oh.start_time = datetime.utcnow()
     if oh.hearing:
@@ -213,7 +302,7 @@ def start_online_hearing(
     return build_online_hearing_response(oh)
 
 
-@router.post("/sessions/{online_hearing_id}/recording", response_model=OnlineHearingResponse, summary="Toggle Hearing Recording")
+@router.post("/sessions/{online_hearing_id}/recording", response_model=OnlineHearingResponse, summary="Recording capture (unavailable)")
 def toggle_recording(
     online_hearing_id: int,
     enable: bool = Query(...),
@@ -221,37 +310,14 @@ def toggle_recording(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.JUDGE, UserRole.ADMINISTRATOR))
 ):
-    """
-    Authorized recording controls for judge (FR-4.6.3 VirtualHearing.Record).
-    """
-    client_ip = request.client.host if (request and request.client) else None
-    oh = db.query(OnlineHearing).filter(OnlineHearing.online_hearing_id == online_hearing_id).first()
-    if not oh:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
-
-    oh.is_recorded = enable
-    if enable:
-        rec_dir = os.path.join(settings.UPLOAD_DIR, "recordings")
-        os.makedirs(rec_dir, exist_ok=True)
-        oh.recording_file_path = os.path.join(rec_dir, f"rec_hearing_{oh.hearing_id}.mp4")
-
-    db.commit()
-    db.refresh(oh)
-
-    AuditService.log(
-        db=db,
-        action="RECORDING_TOGGLED",
-        entity_type="OnlineHearing",
-        entity_id=str(online_hearing_id),
-        user_id=current_user.user_id,
-        details=f"Recording {'enabled' if enable else 'disabled'} by {current_user.name}",
-        ip_address=client_ip
+    """Reject recording requests until the configured provider supports capture."""
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail="Recording capture is not configured for the current video conference provider."
     )
 
-    return build_online_hearing_response(oh)
 
-
-@router.post("/sessions/{online_hearing_id}/end", response_model=OnlineHearingResponse, summary="Conclude Hearing & Generate AI Transcript")
+@router.post("/sessions/{online_hearing_id}/end", response_model=OnlineHearingResponse, summary="Conclude Hearing and save session record")
 def end_online_hearing(
     online_hearing_id: int,
     notes: Optional[str] = Query(None, description="Bench notes or summary"),
@@ -259,13 +325,13 @@ def end_online_hearing(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.JUDGE, UserRole.COURT_CLERK, UserRole.ADMINISTRATOR))
 ):
-    """
-    Concludes virtual hearing session, updates status, and triggers automated AI transcript generation (FR-4.6.3 VirtualHearing.End).
-    """
+    """Conclude the proceeding and save session metadata and optional bench notes."""
     client_ip = request.client.host if (request and request.client) else None
     oh = db.query(OnlineHearing).filter(OnlineHearing.online_hearing_id == online_hearing_id).first()
     if not oh:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Virtual hearing session not found")
+    if current_user.role == UserRole.JUDGE and (not oh.hearing or oh.hearing.judge_id != current_user.user_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the assigned judge may conclude this hearing")
 
     oh.end_time = datetime.utcnow()
     if not oh.start_time:
@@ -274,8 +340,8 @@ def end_online_hearing(
     if oh.hearing:
         oh.hearing.hearing_status = "Completed"
 
-    # Automatically generate AI transcript
-    transcript = VirtualCourtService.generate_ai_transcript(db, oh, notes=notes)
+    # Save session metadata and notes; no live audio transcription provider is configured.
+    transcript = VirtualCourtService.generate_session_record(db, oh, notes=notes)
 
     db.commit()
     db.refresh(oh)
@@ -286,7 +352,7 @@ def end_online_hearing(
         entity_type="OnlineHearing",
         entity_id=str(online_hearing_id),
         user_id=current_user.user_id,
-        details=f"Hearing #{oh.hearing_id} concluded and AI transcript #{transcript.transcript_id} generated",
+        details=f"Hearing #{oh.hearing_id} concluded and session record #{transcript.transcript_id} saved",
         ip_address=client_ip
     )
 
@@ -302,6 +368,7 @@ def get_attendees(
     """
     Retrieves complete attendance roster for the proceeding (FR-4.6.3 VirtualHearing.Attendance.Track).
     """
+    get_authorized_online_hearing(online_hearing_id, db, current_user)
     attendees = db.query(HearingAttendance).filter(
         HearingAttendance.online_hearing_id == online_hearing_id
     ).order_by(HearingAttendance.joined_at.asc()).all()
@@ -314,9 +381,8 @@ def get_transcript(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
-    """
-    Retrieves the verbatim AI transcript (FR-4.6.3 VirtualHearing.Transcript.Generate).
-    """
+    """Retrieve the participant-restricted hearing session record and any bench notes."""
+    get_authorized_online_hearing(online_hearing_id, db, current_user)
     transcript = db.query(Transcript).filter(Transcript.online_hearing_id == online_hearing_id).first()
     if not transcript:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transcript not available for this hearing")
@@ -342,8 +408,8 @@ def download_transcript_pdf(
     Exports and downloads authenticated transcript PDF (Transcript.download()).
     """
     client_ip = request.client.host if (request and request.client) else None
-    oh = db.query(OnlineHearing).filter(OnlineHearing.online_hearing_id == online_hearing_id).first()
-    if not oh or not oh.transcript:
+    oh = get_authorized_online_hearing(online_hearing_id, db, current_user)
+    if not oh.transcript:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transcript not found")
 
     pdf_path = VirtualCourtService.generate_transcript_pdf(oh.transcript, oh)

@@ -5,10 +5,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.models.user import User, UserRole, Judge
-from app.models.hearing import Hearing, Courtroom
-from app.models.case import CourtCase, CaseHistory
+from app.models.hearing import Hearing, Courtroom, OnlineHearing
+from app.models.case import CourtCase, CaseHistory, CaseLawyerAssociation
 from app.schemas.hearing import (
     HearingRecommendationRequest,
     HearingRecommendationResponse,
@@ -27,6 +28,12 @@ from app.schemas.hearing import (
 from app.api.deps import get_current_active_user, require_roles
 from app.services.ai_scheduler_service import AISchedulerService
 from app.services.audit_service import AuditService
+from app.services.notification_service import NotificationService
+from app.services.virtual_court_service import VirtualCourtService
+from app.services.google_meet_service import GoogleMeetService
+import logging
+
+logger = logging.getLogger("nyayasetu.hearings")
 
 router = APIRouter()
 
@@ -201,6 +208,44 @@ def schedule_hearing(
         ip_address=client_ip
     )
 
+    # Auto-generate virtual courtroom session room if Online or Hybrid
+    if schedule_in.hearing_type in ("Online", "Hybrid"):
+        try:
+            case_num = case.case_number or f"CASE_{hearing.case_id}"
+            provider = settings.VIRTUAL_COURT_PROVIDER.strip().lower()
+            if provider == "google_meet":
+                meeting_link, provider_space_name = GoogleMeetService.create_space()
+                meeting_passcode = None
+            else:
+                _, meeting_link, generated_passcode = VirtualCourtService.generate_room_details(
+                    hearing.hearing_id, case_num
+                )
+                meeting_passcode = generated_passcode
+                provider_space_name = None
+
+            online_hearing = OnlineHearing(
+                hearing_id=hearing.hearing_id,
+                meeting_link=meeting_link,
+                meeting_passcode=meeting_passcode,
+                meeting_provider=provider,
+                provider_space_name=provider_space_name,
+                is_recorded=False
+            )
+            db.add(online_hearing)
+            db.commit()
+        except Exception as e:
+            logger.warning(f"Failed to auto-create online hearing room: {e}")
+
+    # Dispatch Notifications to stakeholders
+    try:
+        NotificationService.notify_hearing_stakeholders(
+            db=db,
+            hearing=hearing,
+            event_type="SCHEDULED"
+        )
+    except Exception as e:
+        logger.warning(f"Failed to dispatch hearing scheduled notifications: {e}")
+
     return build_hearing_response(hearing)
 
 
@@ -227,6 +272,10 @@ def list_hearings(
     elif current_user.role == UserRole.LITIGANT:
         query = query.join(CourtCase, Hearing.case_id == CourtCase.case_id).filter(
             CourtCase.litigant_id == current_user.user_id
+        )
+    elif current_user.role == UserRole.LAWYER:
+        query = query.join(CaseLawyerAssociation, Hearing.case_id == CaseLawyerAssociation.case_id).filter(
+            CaseLawyerAssociation.lawyer_id == current_user.user_id
         )
 
     if case_id:
@@ -328,6 +377,16 @@ def reschedule_hearing(
         ip_address=client_ip
     )
 
+    try:
+        NotificationService.notify_hearing_stakeholders(
+            db=db,
+            hearing=hearing,
+            event_type="RESCHEDULED",
+            extra_note=reschedule_in.reason
+        )
+    except Exception as e:
+        logger.warning(f"Failed to dispatch hearing rescheduled notifications: {e}")
+
     return build_hearing_response(hearing)
 
 
@@ -370,6 +429,16 @@ def cancel_hearing(
         details=f"Hearing #{hearing.hearing_id} cancelled. Reason: {cancel_in.reason}",
         ip_address=client_ip
     )
+
+    try:
+        NotificationService.notify_hearing_stakeholders(
+            db=db,
+            hearing=hearing,
+            event_type="CANCELLED",
+            extra_note=cancel_in.reason
+        )
+    except Exception as e:
+        logger.warning(f"Failed to dispatch hearing cancelled notifications: {e}")
 
     return build_hearing_response(hearing)
 
@@ -417,6 +486,16 @@ def adjourn_hearing(
         details=f"Hearing #{hearing.hearing_id} adjourned: {adjourn_in.reason}",
         ip_address=client_ip
     )
+
+    try:
+        NotificationService.notify_hearing_stakeholders(
+            db=db,
+            hearing=hearing,
+            event_type="ADJOURNED",
+            extra_note=adjourn_in.reason
+        )
+    except Exception as e:
+        logger.warning(f"Failed to dispatch hearing adjourned notifications: {e}")
 
     return build_hearing_response(hearing)
 

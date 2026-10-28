@@ -157,7 +157,9 @@ def get_notification_stats(
     delivered = db.query(Notification).filter(Notification.delivery_status == "Delivered").count()
     pending = db.query(Notification).filter(Notification.delivery_status == "Pending").count()
     failed = db.query(Notification).filter(Notification.delivery_status == "Failed").count()
-    sent = delivered + pending
+    sent = db.query(Notification).filter(
+        Notification.delivery_status.in_(["Sent", "Delivered"])
+    ).count()
     unread = db.query(Notification).filter(Notification.is_read == False).count()
 
     return NotificationStats(

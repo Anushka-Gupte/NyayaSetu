@@ -20,7 +20,7 @@ app = FastAPI(
 # CORS setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -44,12 +44,25 @@ def landing_page(request: Request):
 @app.get("/auth", response_class=HTMLResponse, tags=["Web"])
 def auth_page(request: Request):
     """Aceternity Split Auth with RBAC Demo Selectors"""
-    return templates.TemplateResponse(request=request, name="auth.html")
+    return templates.TemplateResponse(
+        request=request,
+        name="auth.html",
+        context={"idle_timeout_minutes": settings.SESSION_IDLE_TIMEOUT_MINUTES}
+    )
+
+@app.get("/auth/reset", response_class=HTMLResponse, tags=["Web"])
+def password_reset_page(request: Request):
+    """Render the password reset form; the reset token stays in the URL fragment."""
+    return templates.TemplateResponse(request=request, name="reset_password.html")
 
 @app.get("/dashboard", response_class=HTMLResponse, tags=["Web"])
 def dashboard_page(request: Request):
     """Unified Role-Adaptive Judicial Dashboard"""
-    return templates.TemplateResponse(request=request, name="dashboard.html")
+    return templates.TemplateResponse(
+        request=request,
+        name="dashboard.html",
+        context={"idle_timeout_minutes": settings.SESSION_IDLE_TIMEOUT_MINUTES}
+    )
 
 @app.get("/health", tags=["Health"])
 def health_check(db: Session = Depends(get_db)):

@@ -63,13 +63,32 @@ def build_case_summary(case: CourtCase) -> CourtCaseResponse:
     )
 
 
+def ensure_case_access(db: Session, current_user: User, case: CourtCase) -> None:
+    """Require a court role or an explicit litigant, counsel, or judge assignment."""
+    if current_user.role in {UserRole.ADMINISTRATOR, UserRole.COURT_CLERK}:
+        return
+    if current_user.role == UserRole.LITIGANT and case.litigant_id == current_user.user_id:
+        return
+    if current_user.role == UserRole.LAWYER and db.query(CaseLawyerAssociation.id).filter(
+        CaseLawyerAssociation.case_id == case.case_id,
+        CaseLawyerAssociation.lawyer_id == current_user.user_id
+    ).first():
+        return
+    if current_user.role == UserRole.JUDGE and db.query(Hearing.hearing_id).filter(
+        Hearing.case_id == case.case_id,
+        Hearing.judge_id == current_user.user_id
+    ).first():
+        return
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied to this case record")
+
+
 @router.post("/check-duplicate", response_model=DuplicateCheckResponse, summary="Pre-check Potential Duplicate Cases")
 def check_duplicate(
     title: str = Query(..., min_length=3),
     case_type: str = Query(...),
     litigant_id: int = Query(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(require_roles(UserRole.COURT_CLERK, UserRole.ADMINISTRATOR))
 ):
     """
     Checks for potential duplicate registrations before filing (FR-4.2.3 Case.Duplicate.Check).
@@ -88,7 +107,7 @@ def register_case(
     case_in: CaseCreate,
     request: Request = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(UserRole.COURT_CLERK, UserRole.ADMINISTRATOR))
+    current_user: User = Depends(require_roles(UserRole.COURT_CLERK))
 ):
     """
     Registers a new judicial case, generates unique Case ID, and records initial history (FR-4.2.3).
@@ -153,6 +172,20 @@ def register_case(
         ip_address=client_ip
     )
 
+    # In-App Notification to Litigant
+    try:
+        from app.services.notification_service import NotificationService
+        NotificationService.send_single_notification(
+            db=db,
+            recipient_id=litigant.litigant_id,
+            title=f"Case Registered: {new_case.case_number}",
+            message=f"Your case '{new_case.title}' ({new_case.case_type}) has been officially registered with priority '{new_case.priority}'.",
+            notification_type="In-App",
+            case_id=new_case.case_id
+        )
+    except Exception:
+        pass
+
     return build_case_summary(new_case)
 
 
@@ -178,6 +211,11 @@ def search_cases(
     elif current_user.role == UserRole.LAWYER:
         assigned_case_ids = db.query(CaseLawyerAssociation.case_id).filter(
             CaseLawyerAssociation.lawyer_id == current_user.user_id
+        ).subquery()
+        query = query.filter(CourtCase.case_id.in_(assigned_case_ids))
+    elif current_user.role == UserRole.JUDGE:
+        assigned_case_ids = db.query(Hearing.case_id).filter(
+            Hearing.judge_id == current_user.user_id
         ).subquery()
         query = query.filter(CourtCase.case_id.in_(assigned_case_ids))
 
@@ -217,9 +255,7 @@ def get_case_details(
     if not case:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
 
-    # Access control
-    if current_user.role == UserRole.LITIGANT and case.litigant_id != current_user.user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied to this case record")
+    ensure_case_access(db, current_user, case)
 
     summary = build_case_summary(case)
 
@@ -398,9 +434,22 @@ def assign_lawyer(
         entity_type="CourtCase",
         entity_id=str(case.case_id),
         user_id=current_user.user_id,
-        details=f"Advocate {lawyer.name} assigned to Case {case.case_number}",
+        details=f"Advocate {lawyer.name} assigned to Case {case.case_number} ({assignment.representing_party})",
         ip_address=client_ip
     )
+
+    try:
+        from app.services.notification_service import NotificationService
+        NotificationService.send_single_notification(
+            db=db,
+            recipient_id=lawyer.lawyer_id,
+            title=f"Court Notice: Assigned to {case.case_number}",
+            message=f"You have been assigned as counsel representing the {assignment.representing_party} in case {case.case_number} ('{case.title}').",
+            notification_type="In-App",
+            case_id=case.case_id
+        )
+    except Exception:
+        pass
 
     return build_case_summary(case)
 
@@ -485,6 +534,8 @@ def download_document(
     ).first()
     if not doc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+
+    ensure_case_access(db, current_user, doc.case)
 
     # Confidential check
     if doc.is_confidential and current_user.role == UserRole.LITIGANT:
@@ -624,5 +675,7 @@ def get_case_history(
     case = db.query(CourtCase).filter(CourtCase.case_id == case_id).first()
     if not case:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
+
+    ensure_case_access(db, current_user, case)
 
     return [CaseHistoryResponse.model_validate(h) for h in sorted(case.history, key=lambda x: x.date_time, reverse=True)]
